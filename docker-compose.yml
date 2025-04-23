@@ -1,0 +1,217 @@
+
+services:
+  web:
+    env_file: .env
+    container_name: ${CONTAINER_NAME_PREFIX}_web
+    image: ${CONTAINER_NAME_PREFIX}_web
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: ./compose/fastapi/Dockerfile
+      args:
+        PROJECT_PATH: ${PROJECT_PATH}
+        PYTHON_VERSION: ${PYTHON_VERSION}
+    # this volume is used to map the files and folders on the host to the container so if we change code on the host, code in the docker container will also be changed
+    volumes:
+      - ./app:${PROJECT_PATH}
+    # '/start' is the shell script used to run the service
+    command: /start
+    environment:
+      APP_PORT: ${APP_PORT}
+      APP_HTTPS_PORT: ${APP_HTTPS_PORT}
+      NGINX_HTTP_PORT: ${NGINX_HTTP_PORT}
+      NGINX_HTTPS_PORT: ${NGINX_HTTPS_PORT}
+    depends_on:
+      - mysqldb
+      - dragonfly
+    networks:
+      - fastapi_encoder
+
+  rabbitmq:
+    container_name: ${CONTAINER_NAME_PREFIX}_rabbitmq
+    restart: unless-stopped
+    image: rabbitmq:3-management
+    environment:
+      - RABBITMQ_DEFAULT_VHOST=${RABBITMQ_DEFAULT_VHOST}
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+    ports:
+      - "5673:5672"
+      - "15671:15672"
+    networks:
+      - fastapi_encoder
+  
+  mysqldb:
+    image: mysql:${MYSQL_VERSION}
+    container_name: ${CONTAINER_NAME_PREFIX}_mysqldb
+    restart: unless-stopped
+    ports:
+      - ${DB_PORT}:3306
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_USER_PASSWORD}
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    volumes:
+      - ./compose/mysql/initdb.d:/docker-entrypoint-initdb.d
+      - ./compose/mysql/conf.d:/etc/mysql/conf.d
+      - ./logs/mysql:/var/log/mysql
+      - ./data/mysql/mysqldb:/var/lib/mysql/
+    networks:
+      - fastapi_encoder
+
+  dragonfly:
+    image: docker.dragonflydb.io/dragonflydb/dragonfly
+    volumes:
+      - ./data/redis:/datadoc
+    container_name: ${CONTAINER_NAME_PREFIX}_dragonfly
+    command: dragonfly --admin_nopass --cache_mode --proactor_threads=2
+    restart: unless-stopped
+    ports:
+      - "63799:6379"
+    networks:
+      - fastapi_encoder
+
+  celery_worker:
+    env_file: .env
+    container_name: ${CONTAINER_NAME_PREFIX}_celery_worker
+    build:
+      context: .
+      dockerfile: ./compose/fastapi/Dockerfile
+    restart: unless-stopped
+    image: ${CONTAINER_NAME_PREFIX}_celery_worker
+    command: /start-celeryworker
+    volumes:
+      - ./app:${PROJECT_PATH}
+    depends_on:
+      - web
+      - rabbitmq
+      - dragonfly
+      - mysqldb
+    networks:
+      - fastapi_encoder
+
+  celery_beat:
+    env_file: .env
+    container_name: ${CONTAINER_NAME_PREFIX}_celery_beat
+    build:
+      context: .
+      dockerfile: ./compose/fastapi/Dockerfile
+    restart: unless-stopped
+    image: ${CONTAINER_NAME_PREFIX}_celery_beat
+    command: /start-celerybeat
+    volumes:
+      - ./app:${PROJECT_PATH}
+    depends_on:
+      - web
+      - rabbitmq
+      - celery_worker
+      - dragonfly
+      - mysqldb
+    networks:
+      - fastapi_encoder
+
+  flower:
+    env_file: .env
+    container_name: ${CONTAINER_NAME_PREFIX}_flower
+    build:
+      context: .
+      dockerfile: ./compose/fastapi/Dockerfile
+    restart: unless-stopped
+    image: ${CONTAINER_NAME_PREFIX}_celery_flower
+    command: /start-flower
+    volumes:
+      - ./app:${PROJECT_PATH}
+    ports:
+      - "5558:5555"
+    depends_on:
+      - celery_worker
+      - web
+      - rabbitmq
+      - dragonfly
+      - mysqldb
+    networks:
+      - fastapi_encoder
+          
+  minio:
+    image: minio/minio
+    container_name: ${CONTAINER_NAME_PREFIX}_minio
+    restart: unless-stopped
+    command: server /data/minio --console-address ":9001"
+    ports:
+      - target: 9000
+        published: ${MINIO_API_PORT:-9000}
+        protocol: tcp
+        mode: host
+      - target: 9001
+        published: ${MINIO_CONSOLE_PORT:-9001}
+        protocol: tcp
+        mode: host
+    volumes:
+      - type: volume
+        source: minio-store
+        target: /data
+        volume:
+          nocopy: true
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_REGION_NAME: ${MINIO_REGION_NAME}
+      MINIO_DOMAIN: ${MINIO_DOMAIN}
+      MINIO_SERVER_URL: ${MINIO_SERVER_URL}
+    networks:
+      - fastapi_encoder
+    
+  event_consumer:
+    env_file: .env
+    container_name: ${CONTAINER_NAME_PREFIX}_event_consumer
+    build:
+      context: .
+      dockerfile: ./compose/fastapi/Dockerfile
+    image: ${CONTAINER_NAME_PREFIX}_event_consumer
+    command: python -m project.event_listeners.video_event_consumer
+    volumes:
+      - ./app:${PROJECT_PATH}
+    depends_on:
+      - rabbitmq
+      - mysqldb
+      - web
+    networks:
+      - fastapi_encoder
+
+  nginx:
+    image: nginx:1.21-alpine
+    container_name: ${CONTAINER_NAME_PREFIX}_nginx
+    restart: unless-stopped
+    ports:
+      - ${NGINX_HTTP_PORT}:80
+      - ${NGINX_HTTPS_PORT}:443
+    environment:
+      APP_PORT: ${APP_PORT}
+      APP_HTTPS_PORT: ${APP_HTTPS_PORT}
+      NGINX_HTTP_PORT: ${NGINX_HTTP_PORT}
+      PROJECT_PATH: ${PROJECT_PATH}
+    volumes:
+      - ./compose/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./compose/nginx/templates/custom.conf.template:/etc/nginx/conf.d/templates/custom.conf.template
+      - ./logs/nginx/log:/var/log/nginx
+      - ./data/certs:/etc/nginx/certs
+    working_dir:
+      ${PROJECT_PATH}
+    command: sh -c "envsubst \"`env | awk -F = '{printf \" \\\\$%s\", $1}'`\" < /etc/nginx/conf.d/templates/custom.conf.template > /etc/nginx/conf.d/default.conf && exec nginx -g 'daemon off;'"
+    depends_on:
+      - web
+    networks:
+      - fastapi_encoder
+#Docker Networks
+networks:
+  fastapi_encoder:
+    driver: bridge
+
+volumes:
+  mysqldb:
+    name: ${CONTAINER_NAME_PREFIX}_mysqldb
+  minio-store:
+    name: ${CONTAINER_NAME_PREFIX}_minio

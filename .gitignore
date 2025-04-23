@@ -1,0 +1,34 @@
+# Python bytecode files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+.venv/
+env/
+venv/
+
+# FastAPI server files
+*.db
+*.sqlite3
+
+# IDE/editor files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Logs
+*.log
+data/
+
+# Docker
+docker-compose.override.yml
+Dockerfile*
+
+# Environment variables
+.env
+
+# Dependency directories
+/node_modules/

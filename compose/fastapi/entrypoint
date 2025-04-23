@@ -1,0 +1,54 @@
+#!/bin/bash
+
+# if any of the commands in your code fails for any reason, the entire script fails
+set -o errexit
+# fail exit if one of your pipe command fails
+set -o pipefail
+# exits if any of your variables is not set
+set -o nounset
+
+
+mysql_ready() {
+python << END
+import sys
+import os
+import mysql.connector
+from mysql.connector import Error
+
+MYSQL_DATABASE = os.getenv("MYSQL_DATABASE")
+MYSQL_USER = os.getenv("MYSQL_USER")
+MYSQL_PASSWORD = os.getenv("MYSQL_USER_PASSWORD")
+MYSQL_SERVER = os.getenv("DB_HOST")
+MYSQL_PORT = os.getenv("DB_DEFAULT_PORT")
+
+try:
+    connection = mysql.connector.connect(
+        user=MYSQL_USER,
+        password=MYSQL_PASSWORD,
+        host=MYSQL_SERVER,
+        database=MYSQL_DATABASE
+    )
+
+    if connection.is_connected():
+        db_Info = connection.get_server_info()
+        cursor = connection.cursor()
+        cursor.execute("select database();")
+        record = cursor.fetchone()
+        print("You are connected to database: ")
+        connection.close()
+
+except Error as e:
+    print(f"Error while connecting to MySQL at host {MYSQL_SERVER} ", e)
+    sys.exit(-1)
+sys.exit(0)
+
+
+END
+}
+until mysql_ready; do
+  >&2 echo 'Waiting for MySQL to become available...'
+  sleep 1
+done
+>&2 echo 'MySQL is available'
+
+exec "$@"

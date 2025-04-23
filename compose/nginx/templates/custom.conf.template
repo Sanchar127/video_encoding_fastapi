@@ -1,0 +1,74 @@
+server {
+    listen       80;
+    listen  [::]:80;
+    client_max_body_size 4G;
+    server_name localhost;
+
+    location / {
+      proxy_set_header Host $http_host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection $connection_upgrade;
+      proxy_redirect off;
+      proxy_buffering off;
+      proxy_pass http://uvicorn;
+    }
+
+    # redirect server error pages to the static page /50x.html
+    #
+    error_page   500 502 503 504  /50x.html;
+    location = /50x.html {
+        root   /usr/share/nginx/html;
+    }
+}
+
+#server {
+#
+#        listen 443 ssl;
+#        listen [::]:443 ssl;
+#        client_max_body_size 4G;
+#        server_name _;
+#
+#        ssl_certificate                 /etc/nginx/certs/STAR.vianet.com.np.crt;
+#        ssl_certificate_key             /etc/nginx/certs/STAR.vianet.com.np.key;
+#
+#        add_header 'Cache-Control' 'no-cache';
+#        add_header 'Access-Control-Allow-Origin' '*';
+#        add_header 'Access-Control-Expose-Headers' 'Content-Length';
+#        add_header 'Access-Control-Max-Age' 1728000;
+#        add_header 'Access-Control-Allow-Headers' 'Origin,Range,Accept-Encoding,Referer,Cache-Control';
+#        add_header 'Access-Control-Expose-Headers' 'Server,Content-Length,Content-Range,Date';
+#        add_header 'Access-Control-Allow-Methods' 'GET, HEAD, POST, OPTIONS, PUT, DELETE';
+#
+#
+#
+#    location / {
+#      proxy_set_header Host $http_host;
+#      proxy_set_header X-Real-IP $remote_addr;
+#      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+#      proxy_set_header X-Forwarded-Proto $scheme;
+#      proxy_set_header Upgrade $http_upgrade;
+#      proxy_set_header Connection $connection_upgrade;
+#      proxy_redirect off;
+#      proxy_buffering off;
+#      proxy_pass http://uvicorn;
+#    }
+#
+#    # redirect server error pages to the static page /50x.html
+#    #
+#    error_page   500 502 503 504  /50x.html;
+#    location = /50x.html {
+#        root   /usr/share/nginx/html;
+#    }
+#}
+
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    '' close;
+  }
+
+upstream uvicorn {
+ server web:${APP_PORT};
+}

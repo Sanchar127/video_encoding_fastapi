@@ -1,0 +1,8 @@
+#!/bin/bash
+
+set -o errexit
+set -o nounset
+
+# Automatically restart on code changes and listen to "video-encoding" queue
+watchmedo auto-restart --directory=./ --pattern=*.py --recursive \
+    -- celery -A celery_app.celery_app worker --loglevel=INFO -Q video-encoding
