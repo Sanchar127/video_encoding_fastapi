@@ -2,7 +2,6 @@ from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
 from sqlalchemy.orm import Session
 from datetime import datetime,timedelta
 from uuid import uuid4
-import io
 from typing import List
 from ..services.s3_event.s3_event import get_minio_client, get_presigned_video_url
 from ..db.database import SessionLocal
@@ -13,6 +12,7 @@ from ..logging_config import setup_logger
 from .user import get_current_user,get_admin_user
 from ..models.user import User
 from ..schemas.videojob import VideoJobRead
+import io
 
 
 

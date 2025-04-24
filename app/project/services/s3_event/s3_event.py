@@ -2,9 +2,9 @@
 from minio import Minio
 import os
 from datetime import timedelta
-import requests
-import io
-from project.utils.virus_scanner import scan_file_stream
+# import requests
+# import io
+# from project.utils.virus_scanner import scan_file_stream
 def get_minio_client():
     return Minio(
         endpoint=os.getenv("S3_ENDPOINT", "localhost:9000").replace("http://", ""),
@@ -44,3 +44,5 @@ def get_presigned_video_url(object_name: str, expires_in_seconds: int = 3600) ->
     except Exception as e:
         print(f"Error: {e}")
         return None
+
+

@@ -53,7 +53,7 @@ def get_admin_user(current_user: User = Depends(get_current_user)):
 
 
 
-@router.post("/token")
+@router.post("/login")
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     user = authenticate_user(db, form_data.username, form_data.password)
     if not user:
@@ -104,8 +104,11 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
 def get_all_users(db: Session = Depends(get_db), current_user: User = Depends(get_admin_user)):
     return db.query(User).all()
 
-
-
+@router.get("/users/${id}", response_model=UserOut)
+def get_all_users(id: str,db: Session = Depends(get_db), current_user: User = Depends(get_admin_user)):
+    
+    db_user = db.query(User).filter(User.unique_id == id).first()
+    return db_user
 # USERS: Create user
 
 @router.post("/users/create", response_model=UserOut)
@@ -182,7 +185,7 @@ def update_user(user_id: str, user_data: UserCreate, db: Session = Depends(get_d
     db_user.status = user_data.status
     db_user.email_notification_status = user_data.email_notification_status
     db_user.email_notification = user_data.email_notification
-
+    
     db.commit()
     db.refresh(db_user)
     return db_user
