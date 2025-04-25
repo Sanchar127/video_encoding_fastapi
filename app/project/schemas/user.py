@@ -36,7 +36,6 @@ class UserOut(BaseModel):
     status: bool
     mobile: str
     address: str
-    stream_url: str  # This will validate that it's an HTTP/HTTPS URL
     callback_key: str
     callback_url: str  # This will validate that it's an HTTP/HTTPS URL
     callback_secret_key: str

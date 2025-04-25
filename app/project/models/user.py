@@ -14,7 +14,6 @@ class User(Base):
     callback_key = Column(String(200), nullable=False)
     callback_url = Column(String(200), nullable=False)
     callback_secret_key = Column(String(200), nullable=False)
-    stream_url = Column(String(255))
     is_activated = Column(Boolean, default=False)
     status = Column(Boolean, default=False)
     email_notification_status = Column(Boolean, default=True)
@@ -27,3 +26,4 @@ class User(Base):
 
     video_jobs = relationship("VideoJob", back_populates="user")
     encode_profiles = relationship("EncodeProfiles", back_populates="user")
+

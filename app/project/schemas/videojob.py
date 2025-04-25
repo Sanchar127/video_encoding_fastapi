@@ -7,6 +7,7 @@ class VideoJobRead(BaseModel):
     video_filename: str
     job_by: str
     encoding_profile: int
+    encoding_profileDetails: int 
     retry: Optional[int]=None
     video_url: Optional[str]=None
     status: str

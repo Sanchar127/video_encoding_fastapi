@@ -164,22 +164,23 @@ services:
     networks:
       - fastapi_encoder
     
-  event_consumer:
+  test:
     env_file: .env
-    container_name: ${CONTAINER_NAME_PREFIX}_event_consumer
+    container_name: ${CONTAINER_NAME_PREFIX}_test
+    image: ${CONTAINER_NAME_PREFIX}_test
     build:
       context: .
       dockerfile: ./compose/fastapi/Dockerfile
-    image: ${CONTAINER_NAME_PREFIX}_event_consumer
-    command: python -m project.event_listeners.video_event_consumer
+    command: pytest --maxfail=1 --disable-warnings -q
     volumes:
       - ./app:${PROJECT_PATH}
     depends_on:
-      - rabbitmq
       - mysqldb
-      - web
+      - dragonfly
     networks:
       - fastapi_encoder
+
+
 
   nginx:
     image: nginx:1.21-alpine

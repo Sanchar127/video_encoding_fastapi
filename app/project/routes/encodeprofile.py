@@ -7,7 +7,7 @@ from .user import get_admin_user
 from ..models.user import User
 from ..schemas.encodeprofile import EncodeProfileResponse
 from typing import List
-
+from fastapi import Query,Body
 router = APIRouter()
 def get_db():
     db = SessionLocal()
@@ -18,6 +18,9 @@ def get_db():
 
 @router.post("/encode-profile", response_model=EncodeProfileResponse)
 async def create_encode_profile(profile: EncodeProfileCreate, db: Session = Depends(get_db),  current_user: User = Depends(get_admin_user)):
+    """
+    It is use to create encode profile.
+	"""
     db_profile = EncodeProfiles(name=profile.name,user_id=profile.user_id)
 
     db.add(db_profile)
@@ -64,6 +67,9 @@ def get_all_encode_profiles(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_admin_user)
 ):
+    """
+	Use to  get all data of encodeprofile 
+	"""
     try:
         profiles = db.query(EncodeProfiles).all()
         return profiles
@@ -72,12 +78,15 @@ def get_all_encode_profiles(
 
 
 
-@router.get("/encodeprofile/${id}", response_model=EncodeProfileResponse)
+@router.get("/encodeprofile/", response_model=EncodeProfileResponse)
 def get_encode_profile_by_id(
     id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_admin_user)
-):
+):  
+    """
+	Use to get  encodeprofile from id.
+	"""
     try:
         profile = db.query(EncodeProfiles).filter(EncodeProfiles.id == id).first()
         if not profile:
@@ -87,19 +96,18 @@ def get_encode_profile_by_id(
     except Exception as e:
         raise HTTPException(status_code=500, detail="Failed to retrieve encoding profile.")
 
-@router.put("/encodeprofile/update/{id}", response_model=EncodeProfileResponse)
+@router.put("/encodeprofile/update", response_model=EncodeProfileResponse)
 def update_encode_profile(
-    id: int,
-    update_data: EncodeProfileCreate,
+    id: int = Query(..., description="ID of the encode profile to update"),
+    update_data: EncodeProfileCreate = Body(...),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_admin_user)
 ):
-    # Function body
-
+    """
+    Use to Update encode profile
+    """
     try:
-        
         profile = db.query(EncodeProfiles).filter(EncodeProfiles.id == id).first()
-
         if not profile:
             raise HTTPException(status_code=404, detail="Encode profile not found.")
 
@@ -111,7 +119,8 @@ def update_encode_profile(
         return profile
 
     except Exception as e:
-        raise HTTPException(status_code=500 , detail= "Failed to update encode profile")
+        raise HTTPException(status_code=500, detail="Failed to update encode profile")
+
 
 
 @router.get("/encodeprofileDetals", response_model=List[EncodeProfileDetailsResponse])
@@ -119,6 +128,9 @@ def get_all_encode_profile_Details(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_admin_user)
 ):
+    """
+	Use to get Encode Profile details. 
+	"""
     try:
         profileDetails = db.query(EncodeProfileDetails).all()
         return profileDetails
@@ -126,12 +138,16 @@ def get_all_encode_profile_Details(
         raise HTTPException(status_code=500, detail="Could not retrieve the encode profiles.")
 
 
-@router.get("/encodeprofileDetails/{id}", response_model=EncodeProfileDetailsResponse)
-def get_encode_profileDetail(
-    id: int,
+@router.get("/encodeprofileDetails", response_model=EncodeProfileDetailsResponse)
+def get_encode_profileDetail_By_Id(
+     id: int = Query(..., description="ID of the encode profile Deatils "),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_admin_user)
 ):
+        """
+	Use to get Encode Profile details by id.
+     
+        """
         
         profileDetails = db.query(EncodeProfileDetails).filter(EncodeProfileDetails.id == id).first()
    
@@ -143,24 +159,19 @@ def get_encode_profileDetail(
         
 
 
-    
 
-    
-@router.put("/encodeprofileDetails/update/{id}", response_model=EncodeProfileDetailsResponse)
+@router.put("/encodeprofileDetails/update", response_model=EncodeProfileDetailsResponse)
 def update_encode_profileDetails(
-    id: int,
-    update_data: EncodeProfileDetailsCreate,
+    id: int = Query(..., description="ID of the encode profile details to update"),
+    update_data: EncodeProfileDetailsCreate = Body(...),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_admin_user)
 ):
-
-
+    """
+    Use to update encode profile details.
+    """
     try:
-        
         profileDetails = db.query(EncodeProfileDetails).filter(EncodeProfileDetails.id == id).first()
-        # profiles= db.query(EncodeProfiles)
-        # if profiles.id != update_data.profile_id :       
-        #     raise HTTPException(status_code==404 , detail="Encode Profile not found")
 
         if not profileDetails:
             raise HTTPException(status_code=404, detail="Encode profileDetails not found.")
@@ -173,7 +184,8 @@ def update_encode_profileDetails(
         return profileDetails
 
     except Exception as e:
-        raise HTTPException(status_code=500 , detail= "Failed to update encode profile Details ")
+        raise HTTPException(status_code=500, detail="Failed to update encode profile details")
+
     
 
 
@@ -181,3 +193,4 @@ def update_encode_profileDetails(
 
 
 
+# i want to test this all endpoint using pytest

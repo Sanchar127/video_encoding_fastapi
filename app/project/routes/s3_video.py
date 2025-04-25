@@ -36,6 +36,9 @@ async def upload_video_and_encode(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    """
+Upload the video 
+	"""
     try:
         logger.info(f"Uploading video to MinIO and starting encoding process")
 
@@ -92,7 +95,7 @@ async def upload_video_and_encode(
             retry_count= 0,
             started_at= datetime.utcnow(),
             encoding_profile=profile_id,
-            # encoding_profileDetails=profile_details_id,
+            encoding_profileDetails=profile_details_id,
             status="queued",
             created_at=datetime.utcnow(),
             updated_at=datetime.utcnow()
@@ -121,6 +124,9 @@ def get_all_jobs(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_admin_user)
 ):
+    """
+	Use to  get all job Store in Database.
+	"""
     try:
         logger.info("Fetching all video jobs")
 
@@ -142,6 +148,9 @@ def retry_failed_job(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_admin_user)
 ):
+    """
+	Use to  retry the job in case of Job failure 
+	"""
     try:
         job = db.query(VideoJob).filter(VideoJob.id == job_id).first()
     
@@ -168,7 +177,7 @@ def retry_failed_job(
         logger.info(f"Retrying job {job.id}, new retry count: {job.retry_count}")
 
         # Trigger Celery task again
-        process_video_encoding_task.delay(job.id, job.encoding_profile, 5)  #i'm putting 5 as encode profile details later i will replace with encodeprofileDetailId 
+        process_video_encoding_task.delay(job.id, job.encoding_profile, 5)  
 
         return {
             "status": "queued",

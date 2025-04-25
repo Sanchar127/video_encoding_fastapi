@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 from ..db.database import Base
 
-from datetime import datetime
+from datetime import datetime,timezone
 from .user import User
 from .encodeprofile import EncodeProfiles
 
@@ -13,7 +13,7 @@ class VideoJob(Base):
     video_filename = Column(String(220), nullable=False)
     job_by = Column(String(36), ForeignKey("users.unique_id"), nullable=False)  # Corrected to String(36)
     encoding_profile = Column(Integer, ForeignKey("encode_profiles.id", ondelete="CASCADE"), nullable=False)
-    # encoding_profileDetails = Column(Integer,nullable=False)
+    encoding_profileDetails = Column(Integer, nullable=False)
     status = Column(String(200), nullable=False)
     retry_count= Column(Integer, default=0,nullable=True)
  

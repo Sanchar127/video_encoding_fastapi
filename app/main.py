@@ -1,26 +1,39 @@
-from fastapi import FastAPI
-from project.db.database import Base,engine
-from project.routes import user as user_routes
+# app/main.py
 
-from project.routes.s3_video import router as s3_routes
-from project.routes.encodeprofile import router as encode_profile_routes
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI()
-
+from project.db.database import Base, engine
+from project.routes.base import api_router, openapi_tags
+from fastapi.testclient import TestClient
+app = FastAPI(
+    title="My API",
+    openapi_tags=openapi_tags
+)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-
-app.include_router(user_routes.router)
-app.include_router(encode_profile_routes)  
-app.include_router(s3_routes)  
-
+# Register all routes
+app.include_router(api_router)
 
 # Create DB tables at startup
 Base.metadata.create_all(bind=engine)
+
+
+@app.get("/")
+async def read_main():
+    return {"msg": "Hello World"}
+
+
+client = TestClient(app)
+
+
+def test_read_main():
+    response = client.get("/")
+    assert response.status_code == 200
+    assert response.json() == {"msg": "Hello World"}

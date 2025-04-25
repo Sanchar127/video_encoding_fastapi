@@ -53,8 +53,11 @@ def get_admin_user(current_user: User = Depends(get_current_user)):
 
 
 
-@router.post("/login")
+@router.post("/token")
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    """
+    This login routes ....
+	"""
     user = authenticate_user(db, form_data.username, form_data.password)
     if not user:
         raise HTTPException(status_code=400, detail="Invalid credentials")
@@ -102,17 +105,26 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
 
 @router.get("/users", response_model=List[UserOut])
 def get_all_users(db: Session = Depends(get_db), current_user: User = Depends(get_admin_user)):
+    """
+	Get all users 
+	"""
     return db.query(User).all()
 
-@router.get("/users/${id}", response_model=UserOut)
-def get_all_users(id: str,db: Session = Depends(get_db), current_user: User = Depends(get_admin_user)):
-    
+@router.get("/user", response_model=UserOut)
+def get_user_ById(id: str = Query(..., description="User Unique id  "),db: Session = Depends(get_db), current_user: User = Depends(get_admin_user)):
+    """
+	Get user data by Id.
+	"""    
     db_user = db.query(User).filter(User.unique_id == id).first()
     return db_user
 # USERS: Create user
 
 @router.post("/users/create", response_model=UserOut)
-def create_user(user_data: UserCreate, db: Session = Depends(get_db), current_user: User = Depends(get_admin_user)):
+def create_user(user_data: UserCreate, db: Session =Depends(get_db),current_user: User = Depends(get_admin_user)):
+
+    """
+	Create user.
+	"""
     # Check for duplicate email
     if db.query(User).filter(User.email == user_data.email).first():
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -131,7 +143,6 @@ def create_user(user_data: UserCreate, db: Session = Depends(get_db), current_us
         mobile=user_data.mobile,
         address=user_data.address,
         role=user_data.role,
-        stream_url=user_data.stream_url,
         callback_url=user_data.callback_url,
         callback_key=user_data.callback_key,
         callback_secret_key=user_data.callback_secret_key,
@@ -147,11 +158,13 @@ def create_user(user_data: UserCreate, db: Session = Depends(get_db), current_us
     return new_user
 
 
-
 # USERS: Update user
 
-@router.put("/users/update/{user_id}", response_model=UserOut)
-def update_user(user_id: str, user_data: UserCreate, db: Session = Depends(get_db), current_user: User = Depends(get_admin_user)):
+@router.put("/users/update", response_model=UserOut)
+def update_user( user_id: str = Query(..., description="User Unique id  "), current_user: User = Depends(get_admin_user)):
+    """
+	Update user by userId.
+	"""
     db_user = db.query(User).filter(User.unique_id == user_id).first()
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -193,12 +206,16 @@ def update_user(user_id: str, user_data: UserCreate, db: Session = Depends(get_d
 
 
 
-@router.post("/users/blacklist-token/{user_id}")
+@router.post("/users/blacklist-token")
 def blacklist_user_token(
-    user_id: str,
+    user_id: str = Query(..., description="User Unique id  "),
     duration_minutes: int = Query(None, description="Duration in minutes to blacklist the token"),
     current_user: User = Depends(get_admin_user)
 ):
+    """
+    Use  to BlackList the user 
+
+	"""
     # Step 1: Fetch tokens from Redis
     tokens = redis_client.smembers(f"user_tokens:{user_id}")
 
@@ -230,6 +247,9 @@ def blacklist_user_token(
 def get_blacklisted_token_details():
     tokens = redis_client.smembers("blacklisted_tokens")
     details = []
+    """
+	Use to  BlackList the user
+	"""
     for token in tokens:
         token_str = token.decode() if isinstance(token, bytes) else token
 
@@ -259,6 +279,9 @@ def get_blacklisted_token_details():
 
 @router.get("/tokens/stored")
 def get_all_stored_tokens():
+    """
+	Use to  Store the token 
+	"""
     keys = redis_client.keys("token:*")
     tokens = []
     for key in keys:
@@ -268,6 +291,4 @@ def get_all_stored_tokens():
             user_id = user_id.decode() if isinstance(user_id, bytes) else user_id
         tokens.append({"token": token, "user_id": user_id})
     return {"stored_tokens": tokens}
-
-
 
