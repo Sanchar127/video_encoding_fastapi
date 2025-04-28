@@ -78,22 +78,15 @@ def get_all_encode_profiles(
 
 
 
-@router.get("/encodeprofile/", response_model=EncodeProfileResponse)
-def get_encode_profile_by_id(
-    id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_admin_user)
-):  
-    """
-	Use to get  encodeprofile from id.
-	"""
+def get_encode_profile_by_id(profile_id: int, db: Session, current_user: User):
     try:
-        profile = db.query(EncodeProfiles).filter(EncodeProfiles.id == id).first()
+        profile = db.query(EncodeProfiles).filter(EncodeProfiles.id == profile_id).first()
         if not profile:
             raise HTTPException(status_code=404, detail="Encoding profile not found.")
-       
         return profile
-    except Exception as e:
+    except HTTPException:
+        raise  # re-raise HTTP exceptions without wrapping
+    except Exception:
         raise HTTPException(status_code=500, detail="Failed to retrieve encoding profile.")
 
 @router.put("/encodeprofile/update", response_model=EncodeProfileResponse)
@@ -104,23 +97,32 @@ def update_encode_profile(
     current_user: User = Depends(get_admin_user)
 ):
     """
-    Use to Update encode profile
+    Use to update the encode profile.
     """
     try:
+        # Fetch the profile
         profile = db.query(EncodeProfiles).filter(EncodeProfiles.id == id).first()
+        
+        # If the profile doesn't exist, raise a 404
         if not profile:
             raise HTTPException(status_code=404, detail="Encode profile not found.")
 
+        # Update the profile fields with provided data
         for key, value in update_data.dict(exclude_unset=True).items():
             setattr(profile, key, value)
 
+        # Commit and refresh the profile
         db.commit()
         db.refresh(profile)
         return profile
 
+    except HTTPException as e:
+        # Re-raise HTTP exceptions (such as 404 not found)
+        raise e
     except Exception as e:
+        # Log unexpected errors and raise 500
+        print(f"Error while updating encode profile: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to update encode profile")
-
 
 
 @router.get("/encodeprofileDetals", response_model=List[EncodeProfileDetailsResponse])
@@ -188,9 +190,8 @@ def update_encode_profileDetails(
 
     
 
+# i want unit test of each function using pytest 
 
 
 
 
-
-# i want to test this all endpoint using pytest

@@ -14,7 +14,7 @@ class User(Base):
     callback_key = Column(String(200), nullable=False)
     callback_url = Column(String(200), nullable=False)
     callback_secret_key = Column(String(200), nullable=False)
-    is_activated = Column(Boolean, default=False)
+    is_activated = Column(Boolean, default=True)
     status = Column(Boolean, default=False)
     email_notification_status = Column(Boolean, default=True)
     email_notification = Column(Boolean, default=True)

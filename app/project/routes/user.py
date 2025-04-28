@@ -31,8 +31,8 @@ def get_db():
 
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     # Check if the token is blacklisted
-    if redis_client.exists(f"blacklisted:{token}"):
-        raise HTTPException(status_code=401, detail="Token has been blacklisted")
+    # if redis_client.exists(f"blacklisted:{token}"):
+    #     raise HTTPException(status_code=401, detail="Token has been blacklisted")
 
     user_id = redis_client.get(f"token:{token}")
     if not user_id:
@@ -44,6 +44,7 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
 
     return user
 
+# put all testing data dummy and like insatd of calling redis cleint and for all use refrence of dummy data and perform this funcional call 
 
 # Dependency for admin or super admin access
 def get_admin_user(current_user: User = Depends(get_current_user)):
@@ -120,11 +121,10 @@ def get_user_ById(id: str = Query(..., description="User Unique id  "),db: Sessi
 # USERS: Create user
 
 @router.post("/users/create", response_model=UserOut)
-def create_user(user_data: UserCreate, db: Session =Depends(get_db),current_user: User = Depends(get_admin_user)):
-
+def create_user(user_data: UserCreate, db: Session = Depends(get_db), current_user: User = Depends(get_admin_user)):
     """
-	Create user.
-	"""
+    Create user.
+    """
     # Check for duplicate email
     if db.query(User).filter(User.email == user_data.email).first():
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -146,17 +146,16 @@ def create_user(user_data: UserCreate, db: Session =Depends(get_db),current_user
         callback_url=user_data.callback_url,
         callback_key=user_data.callback_key,
         callback_secret_key=user_data.callback_secret_key,
-        is_activated=True,
-        status=True,
-        email_notification_status=True,
-        email_notification=True
+        is_activated=user_data.is_activated,
+        status=user_data.status,
+        email_notification_status=user_data.email_notification_status,
+        email_notification=user_data.email_notification
     )
 
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
     return new_user
-
 
 # USERS: Update user
 
@@ -291,4 +290,7 @@ def get_all_stored_tokens():
             user_id = user_id.decode() if isinstance(user_id, bytes) else user_id
         tokens.append({"token": token, "user_id": user_id})
     return {"stored_tokens": tokens}
+
+
+
 

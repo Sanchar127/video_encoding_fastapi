@@ -154,3 +154,4 @@ zipp==3.8.0
 
 
 pytest-asyncio== 0.26.0 # After installing it via pip
+pytest-mock>=3.10.0

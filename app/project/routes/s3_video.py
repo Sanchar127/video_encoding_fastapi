@@ -118,7 +118,9 @@ Upload the video
     except Exception as e:
         logger.error(f"Upload or encoding failed: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
-     
+    
+
+    #our fastapi app donot upload the video to minio external app upload video to minio the job of our fasapi app to look if any video is uploaded in minio and if there any video uploaded video in  minio it generate presigned url fom it and start  other pcess   
 @router.get("/job", response_model=List[VideoJobRead])
 def get_all_jobs(
     db: Session = Depends(get_db),
@@ -193,6 +195,4 @@ def retry_failed_job(
         logger.error(f"Retry failed: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Retry failed unexpectedly")
     
-
-
 

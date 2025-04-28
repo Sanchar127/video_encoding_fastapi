@@ -19,7 +19,6 @@ class UserCreate(BaseModel):
     role: Role = Role.user  # Using Enum for role validation
     is_activated: bool = True
     status: bool = True
-    stream_url: str  # This will validate that it's an HTTP/HTTPS URL
     callback_key: str
     callback_url: str  # Will validate that it's an HTTP/HTTPS URL
     callback_secret_key: str
@@ -44,5 +43,18 @@ class UserOut(BaseModel):
     created_at: Optional[datetime] = None  # Optional for created_at
     updated_at: Optional[datetime] = None  # Optional for updated_at
 
-    class Config:
-        orm_mode = True
+class UserUpdate(BaseModel):
+    name: str
+    email: str
+    password: str
+    mobile: str
+    address: str
+    role: str
+    is_activated: bool
+    status: bool
+    email_notification_status: bool
+    email_notification: bool
+    stream_url: str = None
+    callback_url: str = None
+    callback_key: str = None
+    callback_secret_key: str = None

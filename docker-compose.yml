@@ -62,6 +62,31 @@ services:
     networks:
       - fastapi_encoder
 
+
+
+  # test-mysqldb:
+  #   image: mysql:${MYSQL_VERSION}
+  #   container_name: ${CONTAINER_NAME_PREFIX}_test_mysqldb
+  #   restart: unless-stopped
+  #   ports:
+  #   - "3307:3306"
+  #   environment:
+  #     MYSQL_DATABASE: test_db
+  #     MYSQL_ROOT_PASSWORD: root_password
+  #     MYSQL_USER: test_user
+  #     MYSQL_PASSWORD: test_password
+  #     SERVICE_TAGS: test
+  #     SERVICE_NAME: mysql_test
+  #   volumes:
+  #     - test-mysqldb-data:/var/lib/mysql
+  #   networks:
+  #     - fastapi_encoder
+  #   healthcheck:
+  #     test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+  #     interval: 10s
+  #     retries: 5
+
+
   dragonfly:
     image: docker.dragonflydb.io/dragonflydb/dragonfly
     volumes:
@@ -168,6 +193,7 @@ services:
     env_file: .env
     container_name: ${CONTAINER_NAME_PREFIX}_test
     image: ${CONTAINER_NAME_PREFIX}_test
+    restart: unless-stopped
     build:
       context: .
       dockerfile: ./compose/fastapi/Dockerfile
@@ -177,6 +203,7 @@ services:
     depends_on:
       - mysqldb
       - dragonfly
+      # - test-mysqldb
     networks:
       - fastapi_encoder
 
@@ -214,5 +241,6 @@ networks:
 volumes:
   mysqldb:
     name: ${CONTAINER_NAME_PREFIX}_mysqldb
+  test-mysqldb-data:
   minio-store:
     name: ${CONTAINER_NAME_PREFIX}_minio

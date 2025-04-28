@@ -1,30 +1,25 @@
-"""Adding  encode profile details in video job
+"""Remove stream_url column from users table
 
-Revision ID: 0a5d2f54a223
-Revises: 477952827354
-Create Date: 2025-04-24 09:58:11.596180
-
+Revision ID: affd31695a94
+Revises: 0a5d2f54a223
+Create Date: 2025-04-25
 """
+
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects import mysql
 
 # revision identifiers, used by Alembic.
-revision = '0a5d2f54a223'
-down_revision = '477952827354'
+revision = 'affd31695a94'
+down_revision = '0a5d2f54a223'
 branch_labels = None
 depends_on = None
 
 
-"""Add encoding_profileDetails column to video_jobs"""
-
-
-
 def upgrade():
-    # Add the new column to the video_jobs table
-    op.add_column('video_jobs', sa.Column('encoding_profileDetails', sa.Integer(), nullable=False))
+    # Remove the stream_url column from the users table
+    op.drop_column('users', 'stream_url')
 
 
 def downgrade():
-    # If we need to rollback, drop the column
-    op.drop_column('video_jobs', 'encoding_profileDetails')
+    # Re-add the stream_url column in case of rollback
+    op.add_column('users', sa.Column('stream_url', sa.String(255), nullable=True))

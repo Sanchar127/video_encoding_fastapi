@@ -24,7 +24,9 @@ class VideoJob(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     user = relationship("User", back_populates="video_jobs")
+   # In VideoJob model
     encode_profile = relationship("EncodeProfiles", back_populates="video_jobs")
+
 
 
 #  i want to migrate encoding_profilesDetails column  ..

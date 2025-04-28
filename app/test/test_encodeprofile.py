@@ -1,138 +1,255 @@
-# import pytest
-# import pytest_asyncio
-# from httpx import AsyncClient
-# from fastapi import status
-# from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-# from sqlalchemy.orm import sessionmaker
-# from project.db.database import get_db
-# from project.models.user import User
-# from project.models.encodeprofile import EncodeProfiles
-# from main import app
-# from project.routes.user import get_admin_user
-# import uuid
-# import os
-# DATABASE_URl= os.getenv("DATABASE_URL")
-# # Database URL (must point to a test DB)
+import pytest
+from unittest.mock import AsyncMock, Mock, patch
+from project.routes.encodeprofile import (
+    create_encode_profile,
+    create_encode_profile_details,
+    get_all_encode_profiles,
+    get_encode_profile_by_id,
+    update_encode_profile,
+    get_all_encode_profile_Details,
+    get_encode_profileDetail_By_Id,
+    update_encode_profileDetails,
+    EncodeProfileCreate,
+    EncodeProfileDetailsCreate,
+)
+from fastapi import HTTPException
+
+# ----------------
+# Mocks
+# ----------------
+
+class MockUser:
+    def __init__(self, id=1, is_admin=True):
+        self.id = id
+        self.is_admin = is_admin
+
+class MockEncodeProfiles:
+    def __init__(self, id=1, name="Test Profile", user_id=1):
+        self.id = id
+        self.name = name
+        self.user_id = user_id
+
+class MockEncodeProfileDetails:
+    def __init__(self, id=1, profile_id=1, width=1920, height=1080, video_bitrate=5000,
+                 audio_bitrate=128, audio_channel=2, audio_frequency=44100, sc_threshold=0,
+                 profile="main", level="4.0", max_bitrate=6000, bufsize=10000, movflags="faststart",
+                 pix_fmt="yuv420p", acodec="aac", vcodec="h264", force_format="mp4"):
+        self.id = id
+        self.profile_id = profile_id
+        self.width = width
+        self.height = height
+        self.video_bitrate = video_bitrate
+        self.audio_bitrate = audio_bitrate
+        self.audio_channel = audio_channel
+        self.audio_frequency = audio_frequency
+        self.sc_threshold = sc_threshold
+        self.profile = profile
+        self.level = level
+        self.max_bitrate = max_bitrate
+        self.bufsize = bufsize
+        self.movflags = movflags
+        self.pix_fmt = pix_fmt
+        self.acodec = acodec
+        self.vcodec = vcodec
+        self.force_format = force_format
+
+# ----------------
+# Fixtures
+# ----------------
+
+@pytest.fixture
+def mock_db():
+    db = Mock()
+    db.add = Mock()
+    db.commit = Mock()
+    db.refresh = Mock()
+    db.query = Mock()
+    return db
+
+@pytest.fixture
+def mock_user():
+    return MockUser()
+
+@pytest.fixture
+def mock_profile_create():
+    return EncodeProfileCreate(name="Test Profile", user_id=1)
+
+@pytest.fixture
+def mock_profile_details_create():
+    return EncodeProfileDetailsCreate(
+        profile_id=1,
+        width=1920,
+        height=1080,
+        video_bitrate=5000,
+        audio_bitrate=128,
+        audio_channel=2,
+        audio_frequency=44100,
+        sc_threshold=0,
+        profile="main",
+        level="4.0",
+        max_bitrate=6000,
+        bufsize=10000,
+        movflags="faststart",
+        pix_fmt="yuv420p",
+        acodec="aac",
+        vcodec="libx264",
+        force_format="mp4"
+    )
+
+# ----------------
+# Tests
+# ----------------
+
+@pytest.mark.asyncio
+async def test_create_encode_profile(mock_db, mock_user, mock_profile_create):
+    mock_profile = MockEncodeProfiles(name=mock_profile_create.name, user_id=mock_profile_create.user_id)
+
+    with patch("project.routes.encodeprofile.EncodeProfiles", return_value=mock_profile):
+        result = await create_encode_profile(mock_profile_create, mock_db, mock_user)
+
+    assert result == mock_profile
+    mock_db.add.assert_called_once_with(mock_profile)
+    mock_db.commit.assert_called_once()
+    mock_db.refresh.assert_called_once_with(mock_profile)
+
+@pytest.mark.asyncio
+async def test_create_encode_profile_details(mock_db, mock_user, mock_profile_details_create):
+    mock_profile = MockEncodeProfiles(id=1)
+    mock_db.query().filter().first.return_value = mock_profile
+
+    mock_details = MockEncodeProfileDetails(**mock_profile_details_create.dict())
+
+    with patch("project.routes.encodeprofile.EncodeProfileDetails", return_value=mock_details):
+        result = await create_encode_profile_details(mock_profile_details_create, mock_db, mock_user)
+
+    assert result == mock_details
+    mock_db.add.assert_called_once_with(mock_details)
+    mock_db.commit.assert_called_once()
+    mock_db.refresh.assert_called_once_with(mock_details)
+
+@pytest.mark.asyncio
+async def test_create_encode_profile_details_profile_not_found(mock_db, mock_user, mock_profile_details_create):
+    mock_db.query().filter().first.return_value = None
+
+    with pytest.raises(HTTPException) as exc:
+        await create_encode_profile_details(mock_profile_details_create, mock_db, mock_user)
+
+    assert exc.value.status_code == 404
+    assert exc.value.detail == "Encode Profile not found"
+
+@pytest.mark.asyncio
+async def test_get_all_encode_profiles(mock_db, mock_user):
+    mock_profiles = [MockEncodeProfiles(id=i, name=f"Profile {i}") for i in range(1, 3)]
+    mock_db.query().all.return_value = mock_profiles
+
+    result = get_all_encode_profiles(mock_db, mock_user)  # ✅ No await
 
 
-# # ----------------------
-# # Fixture: Async DB Session
-# # ----------------------
-# @pytest_asyncio.fixture
-# async def test_db_session():
-#     engine = create_async_engine(DATABASE_URL, echo=True, future=True)
-#     AsyncSessionLocal = sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)
+    assert len(result) == 2
+    assert result[0].name == "Profile 1"
+    assert result[1].name == "Profile 2"
 
-#     async def override_get_db():
-#         async with AsyncSessionLocal() as session:
-#             yield session
+@pytest.mark.asyncio
+async def test_get_all_encode_profiles_error(mock_db, mock_user):
+    mock_db.query().all.side_effect = Exception("Database error")
 
-#     app.dependency_overrides[get_db] = override_get_db
-#     yield AsyncSessionLocal
-#     await engine.dispose()
+    with pytest.raises(HTTPException) as exc:
+        await get_all_encode_profiles(mock_db, mock_user)
 
-# # ----------------------
-# # Fixture: Override admin user dependency
-# # ----------------------
-# @pytest.fixture(scope="function", autouse=True)
-# def override_admin_user():
-#     def mock_admin_user():
-#         return User(
-#             unique_id=str(uuid.uuid4()),
-#             name="admin_user",
-#             email="admin@example.com",
-#             password="securepassword",
-#             callback_key="key",
-#             callback_url="http://callback.url",
-#             callback_secret_key="secret",
-#             is_activated=True,
-#             status=True,
-#             email_notification_status=True,
-#             email_notification=True,
-#             mobile="1234567890",
-#             address="Admin Address",
-#             role="admin"
-#         )
-#     app.dependency_overrides[get_admin_user] = mock_admin_user
+    assert exc.value.status_code == 500
+    assert exc.value.detail == "Could not retrieve the encode profiles."
 
-# # ----------------------
-# # Test: POST /encode-profile
-# # ----------------------
-# @pytest.mark.asyncio
-# async def test_create_encode_profile(test_db_session):
-#     test_user_id = str(uuid.uuid4())
+@pytest.mark.asyncio
+async def test_get_encode_profile_by_id(mock_db, mock_user):
+    mock_profile = MockEncodeProfiles(id=1, name="Test Profile")
+    mock_db.query().filter().first.return_value = mock_profile
 
-#     # Create a user in the DB
-#     async with test_db_session() as session:
-#         async with session.begin():
-#             user = User(
-#                 unique_id=test_user_id,
-#                 name="testuser",
-#                 email="testuserdf5ff8@example.com",
-#                 password="testpassword",
-#                 callback_key="key",
-#                 callback_url="http://callback.url",
-#                 callback_secret_key="secret",
-#                 is_activated=True,
-#                 status=True,
-#                 email_notification_status=True,
-#                 email_notification=True,
-#                 mobile="1234567890",
-#                 address="Some Address",
-#                 role="admin"
-#             )
-#             session.add(user)
+    result = get_encode_profile_by_id(1, mock_db, mock_user)
 
-#     # Send POST request to create encode profile
-#     async with AsyncClient(app=app, base_url="http://test") as ac:
-#         payload = {
-#             "name": "1080p Profile",
-#             "user_id": test_user_id
-#         }
-#         response = await ac.post("/encode-profile", json=payload)
 
-#         assert response.status_code == status.HTTP_200_OK
-#         assert response.json()["name"] == "1080p Profile"
-#         assert response.json()["user_id"] == test_user_id
+    assert result == mock_profile
+    assert result.name == "Test Profile"
 
-# # ----------------------
-# # Test: GET /encodeprofileDetals
-# # ----------------------
-# @pytest.mark.asyncio
-# async def test_get_all_encode_profiles(test_db_session):
-#     test_user_id = str(uuid.uuid4())
+@pytest.mark.asyncio
+async def test_get_encode_profile_by_id_not_found(mock_db, mock_user):
+    mock_db.query().filter().first.return_value = None
 
-#     # Create a user and a profile in the DB
-#     async with test_db_session() as session:
-#         async with session.begin():
-#             user = User(
-#                 unique_id=test_user_id,
-#                 name="testuser2",
-#                 email="testuser27fyf@example.com",
-#                 password="testpassword",
-#                 callback_key="key",
-#                 callback_url="http://callback.url",
-#                 callback_secret_key="secret",
-#                 is_activated=True,
-#                 status=True,
-#                 email_notification_status=True,
-#                 email_notification=True,
-#                 mobile="0987654321",
-#                 address="Another Address",
-#                 role="admin"
-#             )
-#             profile = EncodeProfiles(
-#                 name="720p Profile",
-#                 user_id=test_user_id
-#             )
-#             session.add_all([user, profile])
+    with pytest.raises(HTTPException) as exc:
+        await get_encode_profile_by_id(999, mock_db, mock_user)
 
-#     # Send GET request to retrieve profiles
-#     async with AsyncClient(app=app, base_url="http://test") as ac:
-#         response = await ac.get("/encodeprofile")
+    assert exc.value.status_code == 404
+    assert exc.value.detail == "Encoding profile not found."
 
-#         assert response.status_code == status.HTTP_200_OK
-#         data = response.json()
-#         print("RESPONSE JSON:", response.json())
-#         assert isinstance(data, list)
-#         assert any(p["name"] == "720p Profile" for p in data)
+@pytest.mark.asyncio
+async def test_get_encode_profile_by_id_error(mock_db, mock_user):
+    mock_db.query().filter().first.side_effect = Exception("Database error")
+
+    with pytest.raises(HTTPException) as exc:
+        await get_encode_profile_by_id(1, mock_db, mock_user)
+
+    assert exc.value.status_code == 500
+    assert exc.value.detail == "Failed to retrieve encoding profile."
+
+@pytest.mark.asyncio
+async def test_update_encode_profile(mock_db, mock_user, mock_profile_create):
+    mock_profile = MockEncodeProfiles(id=1, name="Old Profile")
+    mock_db.query().filter().first.return_value = mock_profile
+
+    result = update_encode_profile(1, mock_profile_create, mock_db, mock_user)
+
+
+    assert result.name == mock_profile_create.name
+    mock_db.commit.assert_called_once()
+    mock_db.refresh.assert_called_once_with(mock_profile)
+
+@pytest.mark.asyncio
+async def test_update_encode_profile_not_found(mock_db, mock_user, mock_profile_create):
+    # Simulate profile not found (return None for the query)
+    mock_db.query().filter().first.return_value = None  
+    
+    # Ensure HTTPException is raised when the profile doesn't exist
+    with pytest.raises(HTTPException) as exc:
+        await update_encode_profile(999, mock_profile_create, mock_db, mock_user)
+    
+    # Check that the status code is 404 (not 500)
+    assert exc.value.status_code == 404
+    assert exc.value.detail == "Encode profile not found."
+
+@pytest.mark.asyncio
+async def test_update_encode_profile_error(mock_db, mock_user, mock_profile_create):
+    mock_db.query().filter().first.side_effect = Exception("Database error")
+
+    with pytest.raises(HTTPException) as exc:
+        await update_encode_profile(1, mock_profile_create, mock_db, mock_user)
+
+    assert exc.value.status_code == 500
+    assert exc.value.detail == "Failed to update encode profile"
+
+@pytest.mark.asyncio
+async def test_get_all_encode_profile_details(mock_db, mock_user):
+    mock_details = [MockEncodeProfileDetails(id=i, profile_id=1) for i in range(1, 3)]
+    mock_db.query().all.return_value = mock_details
+
+    result = get_all_encode_profile_Details(mock_db, mock_user)
+
+    assert len(result) == 2
+    assert result[0].profile_id == 1
+
+@pytest.mark.asyncio
+async def test_get_all_encode_profile_details_error(mock_db, mock_user):
+    mock_db.query().all.side_effect = Exception("Database error")
+
+    with pytest.raises(HTTPException) as exc:
+        await get_all_encode_profile_Details(mock_db, mock_user)
+
+    assert exc.value.status_code == 500
+    assert exc.value.detail == "Could not retrieve the encode profiles."
+
+@pytest.mark.asyncio
+async def test_get_encode_profile_detail_by_id(mock_db, mock_user):
+    mock_details = MockEncodeProfileDetails(id=1, profile_id=1)
+    mock_db.query().filter().first.return_value = mock_details
+
+    result =  get_encode_profileDetail_By_Id(1, mock_db, mock_user)
+
+    assert result == mock_details
