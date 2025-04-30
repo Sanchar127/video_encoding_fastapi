@@ -1,433 +1,451 @@
+import pytest
+from unittest.mock import Mock,MagicMock,patch
+from fastapi import HTTPException
+from uuid import uuid4
+from uuid import UUID
+from datetime import datetime,timedelta
+from pydantic import BaseModel, EmailStr
+from enum import Enum
+from typing import Optional
+from project.schemas.user import UserCreate,UserOut,UserUpdate
+from project.routes.user import get_current_user,create_user,update_user,blacklist_user_token,get_blacklisted_token_details
+from project.auth.auth import authenticate_user,store_token
+# # Schemas from the user
 
-# import pytest
-# from fastapi import HTTPException
-# from unittest.mock import MagicMock
-# from fastapi import HTTPException
-# from project.routes.user import get_admin_user,get_current_user
-# from project.routes import user as user_module  # import module instead of function
-# from project.routes.user import get_all_users, get_user_ById
-# from project.routes.user import create_user,update_user
-# from fastapi.security import OAuth2PasswordRequestForm
-# from project.routes.user import get_all_stored_tokens
-
-
-# # class DummyUser:
-# #     def __init__(self, role):
-# #         self.role = role
-
-# # @pytest.mark.parametrize(
-# #     "role,should_pass",
-# #     [
-# #         ("admin", True),
-# #         ("super_admin", True),
-# #         ("user", False),
-# #     ]
-# # )
-# # def test_get_admin_user(role, should_pass):
-# #     user = DummyUser(role=role)
+class Role(str, Enum):
+    user = "user"
+    admin = "admin"
+    super_admin = "super_admin"
     
-# #     if should_pass:
-# #         result = get_admin_user(current_user=user)
-# #         assert result == user
-# #     else:
-# #         with pytest.raises(HTTPException) as exc_info:
-# #             get_admin_user(current_user=user)
-# #         assert exc_info.value.status_code == 403
-# #         assert exc_info.value.detail == "Insufficient privileges"
+
+# Simulated User class for testing
+class User:
+    def __init__(self, id: int, unique_id: UUID, name: str, email: str, password: str, mobile: str, role: Role = Role.user, is_activated: bool = True, **kwargs):
+        self.id = id
+        self.unique_id = unique_id
+        self.name = name
+        self.email = email
+        self.password = password
+        self.mobile = mobile
+        self.role = role
+        self.is_activated = is_activated
+        self.status = kwargs.get("status", True)
+        self.address = kwargs.get("address")
+        self.callback_key = kwargs.get("callback_key")
+        self.callback_url = kwargs.get("callback_url")
+        self.callback_secret_key = kwargs.get("callback_secret_key")
+        self.email_notification_status = kwargs.get("email_notification_status", True)
+        self.email_notification = kwargs.get("email_notification", True)
+        self.created_at = kwargs.get("created_at")
+        self.updated_at = kwargs.get("updated_at")
+
+# Dummy data stores
+dummy_users = {}
+dummy_tokens = {}
+dummy_blacklisted_tokens = {}
+dummy_user_tokens = {}
+
+# Mocked dependencies
+mock_db = Mock()
+mock_redis_client = Mock()
+
+def reset_dummy_data():
+    dummy_users.clear()
+    dummy_tokens.clear()
+    dummy_blacklisted_tokens.clear()
+    dummy_user_tokens.clear()
 
 
+def hash_password(password: str) -> str:
+    return f"hashed_{password}"
 
+# Pytest fixtures and tests
+@pytest.fixture(autouse=True)
+def setup_and_teardown():
+    reset_dummy_data()
+    yield
+    reset_dummy_data()
 
-# # class DummyUser:
-# #     def __init__(self, unique_id, is_activated=True, role="user"):
-# #         self.unique_id = unique_id
-# #         self.is_activated = is_activated
-# #         self.role = role
-
-# # @pytest.mark.parametrize(
-# #     "token_exists,user_found,is_activated,should_pass",
-# #     [
-# #         (True, True, True, True),     # Valid token and active user
-# #         (False, True, True, False),   # Token not found in Redis
-# #         (True, False, True, False),   # User not found in DB
-# #         (True, True, False, False),   # User found but not activated
-# #     ]
-# # )
-# # def test_get_current_user(monkeypatch, token_exists, user_found, is_activated, should_pass):
-# #     dummy_token = "dummy_token"
-# #     dummy_user_id = "dummy_user_id"
     
-# #     # Mock redis_client.get
-# #     def mock_redis_get(key):
-# #         if token_exists and key == f"token:{dummy_token}":
-# #             return dummy_user_id
-# #         return None
+@pytest.fixture
+def redis_mock(mocker):
+    return mocker.MagicMock()
+
+@pytest.fixture
+def db_mock():
+    return MagicMock()
+
+
+
+
+
+@pytest.fixture
+def redis_mock():
+    return MagicMock()
+
+
+@pytest.fixture
+def admin_user():
+    user = User(
+        id=1,
+        unique_id=str(uuid4()),
+        name="Admin User",
+        email="admin@example.com",
+        password=hash_password("admin123"),
+        mobile="1234567890",
+        role=Role.admin,
+        is_activated=True,
+        status=True,
+        address="123 Admin St",
+        callback_key="admin_key",
+        callback_url="https://admin.example.com/callback",
+        callback_secret_key="admin_secret",
+        created_at=datetime.utcnow(),
+        updated_at=datetime.utcnow()
+    )
+    dummy_users[user.unique_id] = user
+    return user
+
+@pytest.fixture
+def super_admin_user():
+    user = User(
+        id=2,
+        unique_id=str(uuid4()),
+        name="Super Admin",
+        email="superadmin@example.com",
+        password=hash_password("super123"),
+        mobile="0987654321",
+        role=Role.super_admin,
+        is_activated=True,
+        status=True,
+        address="456 Super St",
+        callback_key="super_key",
+        callback_url="https://superadmin.example.com/callback",
+        callback_secret_key="super_secret",
+        created_at=datetime.utcnow(),
+        updated_at=datetime.utcnow()
+    )
+    dummy_users[user.unique_id] = user
+    return user
+
+@pytest.fixture
+def regular_user():
+    user = User(
+        id=3,
+        unique_id=str(uuid4()),
+        name="Regular User",
+        email="user@example.com",
+        password=hash_password("user123"),
+        mobile="5555555555",
+        role=Role.user,
+        is_activated=True,
+        status=True,
+        address="789 User St",
+        callback_key="user_key",
+        callback_url="https://user.example.com/callback",
+        callback_secret_key="user_secret",
+        created_at=datetime.utcnow(),
+        updated_at=datetime.utcnow()
+    )
+    dummy_users[user.unique_id] = user
+    return user
+
+def test_authenticate_user_success(regular_user, mocker):
+    mocker.patch("project.auth.auth.verify_password", return_value=True)
+    mock_db = mocker.MagicMock()
+    mock_db.query().filter().first.return_value = regular_user
+    user = authenticate_user(mock_db, "user@example.com", "user123")
+    assert user.email == "user@example.com"
+
+def test_authenticate_user_invalid_credentials(regular_user, mocker):
+    mocker.patch("project.auth.auth.verify_password", return_value=False)
     
-# #     # Mock db.query().filter().first()
-# #     class DummyQuery:
-# #         def filter(self, *args, **kwargs):
-# #             return self
-# #         def first(self):
-# #             if user_found:
-# #                 return DummyUser(unique_id=dummy_user_id, is_activated=is_activated)
-# #             return None
+    mock_db = mocker.MagicMock()
+    mock_db.query().filter().first.return_value = regular_user  
 
-# #     class DummyDB:
-# #         def query(self, model):
-# #             return DummyQuery()
+    user = authenticate_user(mock_db, "user@example.com", "wrongpassword")
+    assert user is None
 
-# #     # Monkeypatch redis_client and db
-# #     monkeypatch.setattr(user_module, "redis_client", MagicMock(get=mock_redis_get))
-# #     db = DummyDB()
+def test_store_token():
+    redis_mock = MagicMock()
 
-# #     if should_pass:
-# #         result = get_current_user(token=dummy_token, db=db)
-# #         assert isinstance(result, DummyUser)
-# #         assert result.unique_id == dummy_user_id
-# #     else:
-# #         with pytest.raises(HTTPException) as exc_info:
-# #             get_current_user(token=dummy_token, db=db)
-# #         assert exc_info.value.status_code in (401, 403)
+    user_id = str(uuid4())
+    token = str(uuid4())
+
+    # Call the store_token function with the mock
+    store_token(token, user_id, redis_client=redis_mock)
+
+    # Check correct key and expiration for access token
+    redis_mock.set.assert_called_once_with(
+        f"token:{token}", user_id, ex=timedelta(minutes=15)
+    )
+    redis_mock.sadd.assert_called_once_with(
+        f"user_tokens:{user_id}", token
+    )
 
 
+def test_get_current_user_valid_token(regular_user, redis_mock, db_mock):
+    token = str(uuid4())
+    
+    #
+    redis_mock.get.side_effect = lambda key: {
+        f"token:{token}": regular_user.unique_id,
+        f"blacklist:{token}": None  
+    }.get(key, None) 
+    
+    
+    db_mock.query().filter().first.return_value = regular_user
+
+ 
+    user = get_current_user(token=token, db=db_mock, redis=redis_mock)
+
+   
+    assert user.unique_id == regular_user.unique_id
+
+def test_get_current_user_blacklisted_token(regular_user, redis_mock, db_mock):
+    token = str(uuid4())
+    
+   
+    redis_mock.get.side_effect = lambda key: {
+        f"token:{token}": regular_user.unique_id,   
+        f"blacklist:{token}": "1"                   
+    }.get(key, None)  
+    
+    
+    db_mock.query().filter().first.return_value = regular_user
+
+    # Call the get_current_user function and check for the expected exception
+    with pytest.raises(HTTPException) as exc:
+        get_current_user(token=token, db=db_mock, redis=redis_mock)
+
+    assert exc.value.status_code == 401
+    assert exc.value.detail == "Token has been blacklisted"
+
+
+def test_get_current_user_invalid_token(redis_mock, db_mock):
+    invalid_token = str(uuid4())  # Generate an invalid token
+    
+    # Mock Redis to return None for the invalid token (simulating an invalid or expired token)
+    redis_mock.get.side_effect = lambda key: None  
+    # Ensure the DB mock isn't used because the token is invalid (it shouldn't reach here)
+    db_mock.query().filter().first.return_value = None
+    
+    # Call the get_current_user function and check for the expected exception
+    with pytest.raises(HTTPException) as exc:
+        get_current_user(token=invalid_token, db=db_mock, redis=redis_mock)
+    
+    # Assert that the exception is raised with the expected status code and detail
+    assert exc.value.status_code == 401
+    assert exc.value.detail == "Invalid or expired token"
+
+
+@patch("project.routes.user.redis_client")  # patch in the module where it's used
+def test_blacklist_user_token_success(mock_redis):
+    # Setup
+    user_id = str(uuid4())
+    token = str(uuid4())
+    admin_user = MagicMock()
+    admin_user.unique_id = user_id
+    admin_user.role = "admin"
+
+    mock_redis.smembers.return_value = [token.encode()]
+    mock_redis.set.return_value = None
+    mock_redis.sadd.return_value = None
+
+    result = blacklist_user_token(user_id, 60, admin_user)
+
+    assert result["message"] == f"Tokens for user {user_id} have been blacklisted"
+    assert result["duration_minutes"] == 60
 
 
 
-# # class DummyUser:
-# #     def __init__(self, unique_id, role="admin", is_activated=True):
-# #         self.unique_id = unique_id
-# #         self.role = role
-# #         self.is_activated = is_activated
 
-# # # Dummy DB Session
-# # class DummyDBSession:
-# #     def __init__(self, users):
-# #         self.users = users
+@patch("project.routes.user.redis_client")
+def test_get_blacklisted_token_details(mock_redis, admin_user):
+    token = str(uuid4())
+    user_id = admin_user.unique_id
 
-# #     def query(self, model):
-# #         return self
+    # Simulate Redis content
+    mock_redis.smembers.return_value = [token.encode()]
+    mock_redis.get.side_effect = lambda key: user_id if key == f"token:{token}" else "1"  # handle token:<token> and blacklist:<token>
 
-# #     def all(self):
-# #         return self.users
+    result = get_blacklisted_token_details()
 
-# #     def filter(self, condition):
-# #         # Just return self for chaining
-# #         return self
+    assert len(result["blacklisted_tokens"]) == 1
+    assert result["blacklisted_tokens"][0]["token"] == token
+    assert result["blacklisted_tokens"][0]["user_id"] == user_id
 
-# #     def first(self):
-# #         # Simulate getting the first user (if users exist)
-# #         return self.users[0] if self.users else None
 
-# # @pytest.fixture
-# # def dummy_admin_user():
-# #     return DummyUser(unique_id="admin-123", role="admin")
+# @pytest.mark.asyncio
+# async def test_blacklist_user_token_admin_restriction(mock_redis):
+#     user_id = str(uuid4())
+#     token = str(uuid4())
+#     admin_user = MagicMock()
+#     admin_user.unique_id = user_id
+#     admin_user.role = "admin"
 
-# # @pytest.fixture
-# # def dummy_users():
-# #     return [
-# #         DummyUser(unique_id="user-1"),
-# #         DummyUser(unique_id="user-2"),
-# #     ]
+#     mock_redis.smembers.return_value = [token.encode()]
+#     mock_redis.set.return_value = None
+#     mock_redis.sadd.return_value = None
+#     with pytest.raises(HTTPException) as exc:
+#         await blacklist_user_token(user_id, 60, admin_user)
 
-# # def test_get_all_users(dummy_admin_user, dummy_users):
-# #     db = DummyDBSession(users=dummy_users)
-# #     result = get_all_users(db=db, current_user=dummy_admin_user)
-
-# #     assert result == dummy_users
-# #     assert len(result) == 2
-# #     assert result[0].unique_id == "user-1"
-
-# # @pytest.mark.parametrize(
-# #     "user_exists",
-# #     [
-# #         True,
-# #         False
-# #     ]
-# # )
-# # def test_get_user_ById(dummy_admin_user, dummy_users, user_exists):
-# #     users = dummy_users if user_exists else []
-# #     db = DummyDBSession(users=users)
-
-# #     if user_exists:
-# #         result = get_user_ById(id="user-1", db=db, current_user=dummy_admin_user)
-# #         assert result.unique_id == "user-1"
-# #     else:
-# #         result = get_user_ById(id="user-1", db=db, current_user=dummy_admin_user)
-# #         assert result is None
+#     assert exc.value.status_code == 403
+#     assert exc.value.detail == "Admins can only revoke their own token"
 
 
 
 
+def test_create_user_success(redis_mock, db_mock, admin_user):
+    user_data = UserCreate(
+        name="New User",
+        email="newuser@example.com",
+        password="new123",
+        mobile="1112223333",
+        address="101 New St",
+        role=Role.user,
+        callback_key="new_key",
+        callback_url="https://newuser.example.com/callback",
+        callback_secret_key="new_secret"
+    )
+
+    # Simulate no existing user with the same email
+    db_mock.query.return_value.filter.return_value.first.return_value = None
+
+    db_mock.add.side_effect = lambda x: None
+    db_mock.commit.side_effect = lambda: None
+    db_mock.refresh.side_effect = lambda x: setattr(x, "id", "fake-id")
+
+    new_user = create_user(user_data=user_data, db=db_mock, current_user=admin_user)
+
+    assert new_user.email == user_data.email
+    assert new_user.name == user_data.name
+
+
+def test_create_user_duplicate_email(admin_user):
+    user_data = UserCreate(
+        name="New User",
+        email="user@example.com",  # This email is assumed to already exist
+        password="new123",
+        mobile="1112223333",
+        address="101 New St",
+        role=Role.user,
+        callback_key="new_key",
+        callback_url="https://newuser.example.com/callback",
+        callback_secret_key="new_secret"
+    )
+
+    # Setup mock DB to simulate duplicate email
+    db_mock = MagicMock()
+    db_mock.query.return_value.filter.return_value.first.return_value = True  # Simulate existing user
+
+    with pytest.raises(HTTPException) as exc:
+        create_user(user_data=user_data, db=db_mock, current_user=admin_user)
+
+    assert exc.value.status_code == 400
+    assert exc.value.detail == "Email already registered"
 
 
 
 
+def test_create_user_super_admin_forbidden(admin_user):
+    user_data = UserCreate(
+        name="New User",
+        email="newuser@example.com",
+        password="new123",
+        mobile="1112223333",
+        address="101 New St",
+        role=Role.super_admin,  # Trying to create a super admin
+        callback_key="new_key",
+        callback_url="https://newuser.example.com/callback",
+        callback_secret_key="new_secret"
+    )
 
-# # Dummy User model to replace SQLAlchemy User and Test for create
-# class DummyDBUser:
-#     email = "dummy@example.com"
-#     def __init__(self, **kwargs):
-#         for key, value in kwargs.items():
-#             setattr(self, key, value)
+    db_mock = MagicMock()
+    db_mock.query.return_value.filter.return_value.first.return_value = None  # No duplicate
 
-# # Dummy current user
-# class DummyUser:
-#     def __init__(self, unique_id=None, email=None, role="user", password=None, **kwargs):
-#         self.unique_id = unique_id
-#         self.email = email
-#         self.password = password
-#         self.role = role
-#         self.__dict__.update(kwargs)
+    with pytest.raises(HTTPException) as exc:
+        create_user(user_data=user_data, db=db_mock, current_user=admin_user)
 
-# # Dummy DB session
-# class DummyDBSession:
-#     def __init__(self, existing_users=None):
-#         self.existing_users = existing_users or []
-#         self.added_user = None
-#         self.committed = False
-#         self.refreshed_user = None
+    assert exc.value.status_code == 403
+    assert exc.value.detail == "Cannot create super admin"
 
-#     def query(self, model):
-#         return self
 
-#     def filter(self, condition):
-#         return self
-
-#     def first(self):
-#         # Simulate finding user by email
-#         return self.existing_users[0] if self.existing_users else None
-
-#     def add(self, user):
-#         self.added_user = user
-
-#     def commit(self):
-#         self.committed = True
-
-#     def refresh(self, user):
-#         self.refreshed_user = user
-
-# # Dummy password hasher
-# def dummy_hash_password(password):
-#     return f"hashed-{password}"
-
-# # Fixtures for dummy users
-# @pytest.fixture
-# def dummy_admin_user():
-#     return DummyUser(unique_id="admin-123", role="admin")
-
-# @pytest.fixture
-# def dummy_regular_user():
-#     return DummyUser(unique_id="user-123", role="user")
-
-# # Monkeypatch User and hash_password automatically for all tests
-# @pytest.fixture(autouse=True)
-# def mock_user_dependencies(monkeypatch):
-#     from project.routes import user as user_module
-
-#     monkeypatch.setattr(user_module, "User", DummyDBUser)
-#     monkeypatch.setattr(user_module, "hash_password", dummy_hash_password)
-
-# # Parametrize different test cases
-# @pytest.mark.parametrize(
-#     "existing_user, role_to_create, creator_role, should_pass, expected_status",
-#     [
-#         (True, "user", "admin", False, 400),         # Duplicate email
-#         (False, "super_admin", "admin", False, 403), # Trying to create super_admin
-#         (False, "admin", "user", False, 403),        # Non-admin creating admin
-#         (False, "admin", "admin", True, None),       # Admin creating admin (OK)
-#         (False, "user", "admin", True, None),        # Admin creating user (OK)
-#     ]
-# )
-# def test_create_user(monkeypatch, existing_user, role_to_create, creator_role, should_pass, expected_status):
-#     from project.routes.user import create_user
-
-#     # Prepare dummy user data
-#     dummy_user_data = DummyUser(
-#         name="Test User",
-#         email="test@example.com",
-#         password="password123",
-#         mobile="1234567890",
-#         address="123 Test Street",
-#         role=role_to_create,
-#         callback_url="SASDADZSDADASDA",
-#         callback_key="sdasdasdasdas",
-#         callback_secret_key=True,
+# def test_update_user_success(super_admin_user, regular_user):
+#     user_data = UserUpdate(
+#         name="Updated User",
+#         email="updated@example.com",
+#         password="new123",
+#         mobile="9998887777",
+#         address="202 Updated St",
+#         role=Role.user,
 #         is_activated=True,
 #         status=True,
 #         email_notification_status=True,
 #         email_notification=True,
+#         stream_url="https://stream.example.com",
+#         callback_url="https://updated.example.com/callback",
+#         callback_key="updated_key",
+#         callback_secret_key="updated_secret"
 #     )
 
-#     # Prepare dummy DB session
-#     db = DummyDBSession(existing_users=[dummy_user_data] if existing_user else [])
+#     db_mock = MagicMock()
+#     db_mock.query.return_value.filter.return_value.first.return_value = regular_user
+#     db_mock.commit.side_effect = lambda: None
+#     db_mock.refresh.side_effect = lambda x: setattr(x, "updated_at", "2025-04-29T12:00:00Z")
 
-#     # Prepare current user (creator)
-#     current_user = DummyUser(unique_id="creator-1", role=creator_role)
+#     updated_user = update_user(
+#         user_id=regular_user.unique_id,
+#         user=user_data,  
+#         db=db_mock,
+#         current_user=super_admin_user
+#     )
 
-#     if should_pass:
-#         created_user = create_user(user_data=dummy_user_data, db=db, current_user=current_user)
-
-#         # Assertions for successful creation
-#         assert db.added_user is not None
-#         assert db.committed
-#         assert db.refreshed_user == created_user
-
-#         assert created_user.email == dummy_user_data.email
-#         assert created_user.password == "hashed-password123"
-#         assert created_user.role == role_to_create
-#     else:
-#         # Should raise HTTPException
-#         with pytest.raises(HTTPException) as exc_info:
-#             create_user(user_data=dummy_user_data, db=db, current_user=current_user)
-
-#         assert exc_info.value.status_code == expected_status
+#     assert updated_user.name == "Updated User"
+#     assert updated_user.email == "updated@example.com"
+#     assert updated_user.mobile == "9998887777"
+#     assert updated_user.updated_at is not None
 
 
+# def test_update_user_duplicate_email(super_admin_user, regular_user, admin_user):
+#     user_data = UserUpdate(
+#         name="Updated User",
+#         email="admin@example.com",
+#         password="new123",
+#         mobile="9998887777",
+#         address="202 Updated St",
+#         role=Role.user,
+#         is_activated=True,
+#         status=True,
+#         email_notification_status=True,
+#         email_notification=True
+#     )
+#     with pytest.raises(HTTPException) as exc:
+#         update_user(regular_user.unique_id, user_data, super_admin_user)
+#     assert exc.value.status_code == 400
+#     assert exc.value.detail == "Email already in use"
 
-
-
-
-
-
-# # # Dummy User model for testing
-
-
-
-# # class User:
-# #     def __init__(self, email, password, is_activated, name, mobile, address, email_notification_status, status):
-# #         self.email = email
-# #         self.password = password
-# #         self.is_activated = is_activated
-# #         self.name = name
-# #         self.mobile = mobile
-# #         self.address = address
-# #         self.email_notification_status = email_notification_status
-# #         self.status = status
-
-# # # Mocking the session or database query with dummy users
-# # @pytest.fixture
-# # def dummy_db_session_with_users():
-# #     # Dummy data for users
-# #     dummy_users = [
-# #         User(
-# #             email="test@example.com",
-# #             password="hashed_password",
-# #             is_activated=True,
-# #             name="Test User",
-# #             mobile="1234567890",
-# #             address="123 Test Street",
-# #             email_notification_status=True,
-# #             status="active"
-# #         ),
-# #         User(
-# #             email="inactive@example.com",
-# #             password="hashed_password",
-# #             is_activated=False,
-# #             name="Inactive User",
-# #             mobile="0987654321",
-# #             address="456 Inactive Road",
-# #             email_notification_status=False,
-# #             status="inactive"
-# #         ),
-# #         User(
-# #             email="nonexistent@example.com",
-# #             password="hashed_password",
-# #             is_activated=False,
-# #             name="Nonexistent User",
-# #             mobile="1122334455",
-# #             address="789 Nonexistent Lane",
-# #             email_notification_status=False,
-# #             status="inactive"
-# #         )
-# #     ]
-    
-# #     # Return a mocked session object that simulates fetching the users
-# #     mock_session = MagicMock()
-    
-# #     # Mock the query method to return the dummy users list
-# #     mock_session.query.filter_by.return_value = dummy_users
-# #     yield mock_session
-
-
-# # # Create a mock user object
-# # mock_user = MagicMock()
-# # mock_user.email = "test@example.com"
-# # mock_user.password = "$2b$12$eW5FdHkVjsnF0L6hbqfNXuMTyYcvT4I7nZlXddkIga2DUeGnSV8ZW"  # Example bcrypt hashed password
-# # mock_user.is_activated = True
-
-# # # Setup the dummy_db_session_with_users mock
-
-# # dummy_db_session_with_users.query.return_value.filter.return_value.first.return_value = mock_user
-
-# # @pytest.mark.parametrize(
-# #     "existing_user_email, password, user_activated, should_pass, expected_status, expected_token",
-# #     [
-# #         ("test@example.com", "password123", True, True, None, True),  # Valid user, should pass
-# #         ("inactive@example.com", "password123", False, False, 403, False),  # Inactive user, should fail
-# #         ("nonexistent@example.com", "password123", None, False, 400, False),  # Nonexistent user, should fail
-# #         ("test@example.com", "wrongpassword", True, False, 400, False),  # Incorrect password, should fail
-# #     ]
-# # )
-# # def test_login(dummy_db_session_with_users, existing_user_email, password, user_activated, should_pass, expected_status, expected_token):
-# #     from project.routes.user import login
-
-# #     # Simulate the form data with the provided email, password, and an empty scope
-# #     form_data = OAuth2PasswordRequestForm(username=existing_user_email, password=password, scope="")
-
-# #     # Prepare the mock current user and DB session
-# #     db = dummy_db_session_with_users
-# #     if existing_user_email == "test@example.com":
-# #         db.existing_users[0].is_activated = user_activated  # Set activation status dynamically
-
-# #     if should_pass:
-# #         # Call the login function
-# #         response = login(form_data=form_data, db=db)
-
-# #         # Assertions for successful login
-# #         assert response.status_code == 200
-# #         assert "access_token" in response.json()
-# #         assert "user_uniqueId" in response.json()
-
-# #         # Check if the token is returned correctly
-# #         if expected_token:
-# #             assert isinstance(response.json()["access_token"], str)
-# #     else:
-# #         # Should raise HTTPException
-# #         with pytest.raises(HTTPException) as exc_info:
-# #             login(form_data=form_data, db=db)
-
-# #         assert exc_info.value.status_code == expected_status
+# def test_update_user_admin_cannot_update_other_admin(admin_user, regular_user):
+#     user_data = UserUpdate(
+#         name="Updated User",
+#         email="updated@example.com",
+#         password="new123",
+#         mobile="9998887777",
+#         address="202 Updated St",
+#         role=Role.admin,
+#         is_activated=True,
+#         status=True,
+#         email_notification_status=True,
+#         email_notification=True
+#     )
+#     with pytest.raises(HTTPException) as exc:
+#         update_user(regular_user.unique_id, user_data, admin_user)
+#     assert exc.value.status_code == 403
+#     assert exc.value.detail == "Admins can only update themselves"
 
 
 
-# # # test for get all stored token 
-
-# # # @pytest.fixture
-# # # def mock_redis():
-# # #     redis_client = MagicMock()
-
-# # #     # Simulating some stored tokens in Redis
-# # #     redis_client.keys.return_value = [b"token:abc123", b"token:def456"]
-
-# # #     # Simulating the user IDs associated with these tokens
-# # #     redis_client.get.side_effect = lambda key: b"user_1" if key == b"token:abc123" else b"user_2"
-
-# # #     return redis_client
-
-# # # def test_get_all_stored_tokens(mock_redis):
-# # #     # Call the function with the mock Redis client
-# # #     result = get_all_stored_tokens(mock_redis)
-
-# # #     # Assertions
-# # #     assert result["stored_tokens"] == [
-# # #         {"token": "abc123", "user_id": "user_1"},
-# # #         {"token": "def456", "user_id": "user_2"},
-# # #     ]
-
-# # #     # Check if the Redis `keys` and `get` methods were called correctly
-# # #     mock_redis.keys.assert_called_once_with("token:*")
-# # #     mock_redis.get.assert_any_call(b"token:abc123")
-# # #     mock_redis.get.assert_any_call(b"token:def456")
 
 
-    
+
+

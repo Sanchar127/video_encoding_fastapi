@@ -37,8 +37,8 @@ async def upload_video_and_encode(
     current_user: User = Depends(get_current_user)
 ):
     """
-Upload the video 
-	"""
+    Upload the video and start the encoding process.
+    """
     try:
         logger.info(f"Uploading video to MinIO and starting encoding process")
 
@@ -61,10 +61,10 @@ Upload the video
         client.put_object(
             bucket_name,
             filename,
-            data=file_stream,  
+            data=file_stream,
             length=len(file_data),
             content_type=file.content_type
-)
+        )
 
         logger.info(f"Uploaded video: {filename}")
 
@@ -72,7 +72,7 @@ Upload the video
         url = get_presigned_video_url(object_name=filename)
         if not url:
             logger.error("Failed to generate presigned URL")
-            raise HTTPException(status_code=500, detail="Could not generate presigned URL")
+            raise HTTPException(status_code=404, detail="Could not generate presigned URL")
         
         # 3. Fetch the encoding profile
         profile = db.query(EncodeProfileDetails).filter(
@@ -92,8 +92,8 @@ Upload the video
         video_job = VideoJob(
             video_filename=filename,
             job_by=current_user.unique_id,
-            retry_count= 0,
-            started_at= datetime.utcnow(),
+            retry_count=0,
+            started_at=datetime.utcnow(),
             encoding_profile=profile_id,
             encoding_profileDetails=profile_details_id,
             status="queued",
@@ -105,20 +105,27 @@ Upload the video
         db.refresh(video_job)
 
         logger.info(f"Video job created: {video_job.id}")
+
         # 5. Trigger Celery task
         process_video_encoding_task.delay(video_job.id, profile_id, profile_details_id)
+
         return {
-        "status": "queued",
-        "status_code": 202,
-        "message": "Video encoding task has been submitted successfully.",
-        "job_id": video_job.id
-    }
-       
+            "status": "queued",
+            "status_code": 202,
+            "message": "Video encoding task has been submitted successfully.",
+            "job_id": video_job.id
+        }
+
+    except HTTPException as http_exc:
+        # Handle HTTPExceptions like 404, 400
+        logger.error(f"HTTP error occurred: {http_exc.detail}", exc_info=True)
+        raise http_exc
 
     except Exception as e:
+        # Handle general exceptions (e.g., 500 internal server errors)
         logger.error(f"Upload or encoding failed: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
-    
+
 
     #our fastapi app donot upload the video to minio external app upload video to minio the job of our fasapi app to look if any video is uploaded in minio and if there any video uploaded video in  minio it generate presigned url fom it and start  other pcess   
 @router.get("/job", response_model=List[VideoJobRead])
@@ -195,4 +202,5 @@ def retry_failed_job(
         logger.error(f"Retry failed: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Retry failed unexpectedly")
     
+
 

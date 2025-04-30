@@ -96,9 +96,8 @@ def mock_profile_details_create():
         force_format="mp4"
     )
 
-# ----------------
-# Tests
-# ----------------
+
+# Test Cases
 
 @pytest.mark.asyncio
 async def test_create_encode_profile(mock_db, mock_user, mock_profile_create):
@@ -142,7 +141,7 @@ async def test_get_all_encode_profiles(mock_db, mock_user):
     mock_profiles = [MockEncodeProfiles(id=i, name=f"Profile {i}") for i in range(1, 3)]
     mock_db.query().all.return_value = mock_profiles
 
-    result = get_all_encode_profiles(mock_db, mock_user)  # ✅ No await
+    result = get_all_encode_profiles(mock_db, mock_user)  
 
 
     assert len(result) == 2

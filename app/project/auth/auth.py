@@ -7,11 +7,11 @@ from ..utils.security import verify_password
 from uuid import uuid4
 from ..db.database import SessionLocal
 from datetime import timedelta
-
+from sqlalchemy.exc import SQLAlchemyError
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/token")
 
 
-def store_token(token: str, user_id: str, is_refresh=False):
+def store_token(token: str, user_id: str, redis_client, is_refresh=False):
     if is_refresh:
         expiration_time = timedelta(days=7)
         redis_key = f"refresh_token:{token}"
@@ -26,7 +26,10 @@ def store_token(token: str, user_id: str, is_refresh=False):
 
 
 def authenticate_user(db: Session, email: str, password: str):
-    user = db.query(User).filter(User.email == email).first()
-    if not user or not verify_password(password, user.password):
-        return None
-    return user
+    try:
+        user = db.query(User).filter(User.email == email).first()
+        if not user or not verify_password(password, user.password):
+            return None
+        return user
+    except SQLAlchemyError as e:
+        raise Exception(f"Database error: {e}")

@@ -28,23 +28,31 @@ def get_db():
     finally:
         db.close()
 
+        
+def get_redis():
+    return redis_client  # your global Redis client
 
-def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
-    # Check if the token is blacklisted
-    # if redis_client.exists(f"blacklisted:{token}"):
-    #     raise HTTPException(status_code=401, detail="Token has been blacklisted")
 
-    user_id = redis_client.get(f"token:{token}")
+def get_current_user(
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db),
+    redis=Depends(get_redis),
+):
+    if redis.get(f"blacklist:{token}"):
+        raise HTTPException(status_code=401, detail="Token has been blacklisted")
+
+    user_id = redis.get(f"token:{token}")
     if not user_id:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
 
+    user_id = user_id.decode() if isinstance(user_id, bytes) else user_id
+
     user = db.query(User).filter(User.unique_id == user_id).first()
-    if not user or not user.is_activated:
-        raise HTTPException(status_code=403, detail="User is deactivated or not found")
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
 
     return user
 
-# put all testing data dummy and like insatd of calling redis cleint and for all use refrence of dummy data and perform this funcional call 
 
 # Dependency for admin or super admin access
 def get_admin_user(current_user: User = Depends(get_current_user)):
