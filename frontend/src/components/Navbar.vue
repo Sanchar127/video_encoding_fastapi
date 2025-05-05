@@ -1,6 +1,6 @@
 <template>
-  <nav class="bg-gradient-to-r from-blue-900 to-purple-900 text-white shadow-lg sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+  <nav class="bg-gradient-to-r from-blue-900 to-purple-900 text-white shadow-lg sticky top-0 z-50 ">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
       <div class="flex items-center">
         <span class="text-2xl font-bold">VideoEncoder</span>
       </div>

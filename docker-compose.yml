@@ -73,18 +73,15 @@ services:
       context: .
       dockerfile: ./compose/frontend/Dockerfile
     ports:
-    - "5175:5173"  # Map local 5175 -> container 5173 (Vite dev server)
+    - "5175:5173"  
     volumes:
-    - ./frontend:/app  # Mount source for hot reload
-    - /app/node_modules  # Prevent overwriting node_modules
-    networks:
+    - ./frontend:/app 
+    - /app/node_modules  
     - fastapi_encoder
 
 
 
-#if i change something inside the content of frontend it is not changing for change my docker again to restart 
 
-  # test-mysqldb:
   #   image: mysql:${MYSQL_VERSION}
   #   container_name: ${CONTAINER_NAME_PREFIX}_test_mysqldb
   #   restart: unless-stopped

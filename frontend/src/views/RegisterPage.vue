@@ -1,377 +1,212 @@
-<template>
-  <div class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-    <div class="sm:mx-auto sm:w-full sm:max-w-md">
-      <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
-        Create Your Account
-      </h2>
-      <p class="mt-2 text-center text-sm text-gray-600">
-        Join our platform to access powerful features
-      </p>
+<template >
+   <DefaultLayout>
+
+     <div class="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+       <div class="w-full max-w-2xl p-8 bg-white rounded-lg shadow-md">
+         <h2 class="text-3xl font-semibold text-gray-800 mb-6 text-center">Create New  User</h2>
+   
+        <form @submit.prevent="onSubmit" class="space-y-5">
+  
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div>
+      <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+      <div class="relative">
+        <svg class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A7 7 0 0112 15a7 7 0 016.879 2.804M12 11a4 4 0 100-8 4 4 0 000 8z"/>
+        </svg>
+        <Field
+          id="name"
+          name="name"
+          type="text"
+          class="w-full pl-10 pr-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+      <ErrorMessage name="name" class="text-red-500 text-sm mt-1" />
     </div>
 
-    <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-      <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-        <form @submit.prevent="register" class="space-y-6" novalidate>
-          <!-- Personal Information Section -->
-          <div class="space-y-4 border-b border-gray-200 pb-6">
-            <h3 class="text-lg font-medium text-gray-900">Personal Information</h3>
-            
-            <div>
-              <label for="name" class="block text-sm font-medium text-gray-700">Full Name</label>
-              <div class="mt-1 relative">
-                <input
-                  id="name"
-                  v-model="name"
-                  type="text"
-                  placeholder="John Doe"
-                  :class="['block w-full px-4 py-3 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 border', 
-                          errors.name ? 'border-red-300' : 'border-gray-300']"
-                />
-                <div v-if="errors.name" class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                  <ExclamationCircleIcon class="h-5 w-5 text-red-500" />
-                </div>
-              </div>
-              <p v-if="errors.name" class="mt-2 text-sm text-red-600">{{ errors.name }}</p>
-            </div>
+    <div>
+      <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+      <div class="relative">
+        <svg  xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+  <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
+</svg>
 
-            <div>
-              <label for="email" class="block text-sm font-medium text-gray-700">Email Address</label>
-              <div class="mt-1 relative">
-                <input
-                  id="email"
-                  v-model="email"
-                  type="email"
-                  placeholder="john@example.com"
-                  :class="['block w-full px-4 py-3 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 border', 
-                          errors.email ? 'border-red-300' : 'border-gray-300']"
-                />
-                <div v-if="errors.email" class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                  <ExclamationCircleIcon class="h-5 w-5 text-red-500" />
-                </div>
-              </div>
-              <p v-if="errors.email" class="mt-2 text-sm text-red-600">{{ errors.email }}</p>
-            </div>
-
-            <div>
-              <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
-              <div class="mt-1 relative">
-                <input
-                  id="password"
-                  v-model="password"
-                  type="password"
-                  placeholder="••••••••"
-                  :class="['block w-full px-4 py-3 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 border', 
-                          errors.password ? 'border-red-300' : 'border-gray-300']"
-                />
-                <div v-if="errors.password" class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                  <ExclamationCircleIcon class="h-5 w-5 text-red-500" />
-                </div>
-              </div>
-              <p v-if="errors.password" class="mt-2 text-sm text-red-600">{{ errors.password }}</p>
-              <p class="mt-2 text-xs text-gray-500">At least 8 characters with a mix of letters and numbers</p>
-            </div>
-
-            <div>
-              <label for="mobile" class="block text-sm font-medium text-gray-700">Mobile Number</label>
-              <div class="mt-1 relative">
-                <input
-                  id="mobile"
-                  v-model="mobile"
-                  type="tel"
-                  placeholder="+1 (555) 123-4567"
-                  :class="['block w-full px-4 py-3 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 border', 
-                          errors.mobile ? 'border-red-300' : 'border-gray-300']"
-                />
-                <div v-if="errors.mobile" class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                  <ExclamationCircleIcon class="h-5 w-5 text-red-500" />
-                </div>
-              </div>
-              <p v-if="errors.mobile" class="mt-2 text-sm text-red-600">{{ errors.mobile }}</p>
-            </div>
-
-            <div>
-              <label for="address" class="block text-sm font-medium text-gray-700">Address</label>
-              <div class="mt-1 relative">
-                <input
-                  id="address"
-                  v-model="address"
-                  type="text"
-                  placeholder="123 Main St, City, Country"
-                  :class="['block w-full px-4 py-3 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 border', 
-                          errors.address ? 'border-red-300' : 'border-gray-300']"
-                />
-                <div v-if="errors.address" class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                  <ExclamationCircleIcon class="h-5 w-5 text-red-500" />
-                </div>
-              </div>
-              <p v-if="errors.address" class="mt-2 text-sm text-red-600">{{ errors.address }}</p>
-            </div>
-          </div>
-
-          <!-- Integration Settings Section -->
-          <div class="space-y-4 border-b border-gray-200 pb-6">
-            <h3 class="text-lg font-medium text-gray-900">Integration Settings</h3>
-            
-            <div>
-              <label for="callback_key" class="block text-sm font-medium text-gray-700">Callback Key</label>
-              <div class="mt-1 relative">
-                <input
-                  id="callback_key"
-                  v-model="callback_key"
-                  type="text"
-                  placeholder="your_callback_key"
-                  :class="['block w-full px-4 py-3 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 border', 
-                          errors.callback_key ? 'border-red-300' : 'border-gray-300']"
-                />
-                <div v-if="errors.callback_key" class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                  <ExclamationCircleIcon class="h-5 w-5 text-red-500" />
-                </div>
-              </div>
-              <p v-if="errors.callback_key" class="mt-2 text-sm text-red-600">{{ errors.callback_key }}</p>
-            </div>
-
-            <div>
-              <label for="callback_url" class="block text-sm font-medium text-gray-700">Callback URL</label>
-              <div class="mt-1 relative">
-                <input
-                  id="callback_url"
-                  v-model="callback_url"
-                  type="url"
-                  placeholder="https://your-callback-url.com"
-                  :class="['block w-full px-4 py-3 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 border', 
-                          errors.callback_url ? 'border-red-300' : 'border-gray-300']"
-                />
-                <div v-if="errors.callback_url" class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                  <ExclamationCircleIcon class="h-5 w-5 text-red-500" />
-                </div>
-              </div>
-              <p v-if="errors.callback_url" class="mt-2 text-sm text-red-600">{{ errors.callback_url }}</p>
-            </div>
-
-            <div>
-              <label for="callback_secret_key" class="block text-sm font-medium text-gray-700">Callback Secret Key</label>
-              <div class="mt-1 relative">
-                <input
-                  id="callback_secret_key"
-                  v-model="callback_secret_key"
-                  type="password"
-                  placeholder="••••••••"
-                  :class="['block w-full px-4 py-3 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 border', 
-                          errors.callback_secret_key ? 'border-red-300' : 'border-gray-300']"
-                />
-                <div v-if="errors.callback_secret_key" class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                  <ExclamationCircleIcon class="h-5 w-5 text-red-500" />
-                </div>
-              </div>
-              <p v-if="errors.callback_secret_key" class="mt-2 text-sm text-red-600">{{ errors.callback_secret_key }}</p>
-            </div>
-          </div>
-
-          <!-- Role Selection -->
-          <div>
-            <label for="role" class="block text-sm font-medium text-gray-700">Account Type</label>
-            <select
-              id="role"
-              v-model="role"
-              class="mt-1 block w-full pl-3 pr-10 py-3 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-md shadow-sm"
-            >
-              <option v-for="roleOption in roleOptions" :key="roleOption.value" :value="roleOption.value">
-                {{ roleOption.label }}
-              </option>
-            </select>
-            <p class="mt-2 text-xs text-gray-500">
-              {{ roleOptions.find(r => r.value === role)?.description }}
-            </p>
-          </div>
-
-          <!-- Form Status -->
-          <div>
-            <div v-if="isSubmitting" class="rounded-md bg-blue-50 p-4">
-              <div class="flex">
-                <div class="flex-shrink-0">
-                  <ArrowPathIcon class="h-5 w-5 text-blue-400 animate-spin" />
-                </div>
-                <div class="ml-3">
-                  <h3 class="text-sm font-medium text-blue-800">Creating your account...</h3>
-                </div>
-              </div>
-            </div>
-
-            <div v-if="success" class="rounded-md bg-green-50 p-4">
-              <div class="flex">
-                <div class="flex-shrink-0">
-                  <CheckCircleIcon class="h-5 w-5 text-green-400" />
-                </div>
-                <div class="ml-3">
-                  <h3 class="text-sm font-medium text-green-800">{{ success }}</h3>
-                </div>
-              </div>
-            </div>
-
-            <div v-if="error" class="rounded-md bg-red-50 p-4">
-              <div class="flex">
-                <div class="flex-shrink-0">
-                  <XCircleIcon class="h-5 w-5 text-red-400" />
-                </div>
-                <div class="ml-3">
-                  <h3 class="text-sm font-medium text-red-800">{{ error }}</h3>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Submit Button -->
-          <div>
-            <button
-              type="submit"
-              :disabled="isSubmitting"
-              class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <span v-if="!isSubmitting">Create Account</span>
-              <span v-else class="flex items-center">
-                <ArrowPathIcon class="animate-spin -ml-1 mr-2 h-4 w-4" />
-                Processing...
-              </span>
-            </button>
-          </div>
-        </form>
+        <Field
+          id="email"
+          name="email"
+          type="email"
+          class="w-full pl-10 pr-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
       </div>
+      <ErrorMessage name="email" class="text-red-500 text-sm mt-1" />
     </div>
   </div>
+
+  <!-- Row 2: Password & Mobile -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div>
+      <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+      <Field
+        id="password"
+        name="password"
+        type="password"
+        class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
+   
+      <ErrorMessage name="password" class="text-red-500 text-sm mt-1" />
+    </div>
+
+    <div>
+      <label for="mobile" class="block text-sm font-medium text-gray-700 mb-1">Mobile</label>
+      
+      <div class="relative">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+  <path fill-rule="evenodd" d="M15 3.75a.75.75 0 0 1 .75-.75h4.5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0V5.56l-4.72 4.72a.75.75 0 1 1-1.06-1.06l4.72-4.72h-2.69a.75.75 0 0 1-.75-.75Z" clip-rule="evenodd" />
+  <path fill-rule="evenodd" d="M1.5 4.5a3 3 0 0 1 3-3h1.372c.86 0 1.61.586 1.819 1.42l1.105 4.423a1.875 1.875 0 0 1-.694 1.955l-1.293.97c-.135.101-.164.249-.126.352a11.285 11.285 0 0 0 6.697 6.697c.103.038.25.009.352-.126l.97-1.293a1.875 1.875 0 0 1 1.955-.694l4.423 1.105c.834.209 1.42.959 1.42 1.82V19.5a3 3 0 0 1-3 3h-2.25C8.552 22.5 1.5 15.448 1.5 6.75V4.5Z" clip-rule="evenodd" />
+</svg>
+
+<Field
+    id="mobile"
+    name="mobile"
+    type="text"
+    class="w-full px-10 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+  />
+
+</div>
+
+<!-- Good design of it -->
+
+
+
+      <ErrorMessage name="mobile" class="text-red-500 text-sm mt-1" />
+    </div>
+  </div>
+
+  <!-- Remaining fields -->
+  <div v-for="field in fields.slice(4)" :key="field.name">
+    <label :for="field.name" class="block text-sm font-medium text-gray-700 mb-1">
+      {{ field.label }}
+    </label>
+ 
+    <Field
+      v-if="field.type !== 'select'"
+      :id="field.name"
+      :name="field.name"
+      :type="field.type"
+      class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+    />
+    <Field
+      v-else
+      as="select"
+      :name="field.name"
+      :id="field.name"
+      class="w-full px-4 py-2 border rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+    >
+      <option value="" disabled>Select role</option>
+      <option value="super_admin">Super Admin</option>
+      <option value="admin">Admin</option>
+      <option value="user">User</option>
+    </Field>
+    <ErrorMessage :name="field.name" class="text-red-500 text-sm mt-1" />
+  </div>
+
+  <button
+    type="submit"
+    :disabled="isSubmitting"
+    class="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-200 disabled:opacity-50"
+  >
+    {{ isSubmitting ? 'Submitting...' : 'Submit' }}
+  </button>
+</form>
+
+       </div>
+     </div>
+   </DefaultLayout>
 </template>
 
+<!-- i want better desin of the form doesnot change other part -->
 <script setup lang="ts">
-import { ref } from 'vue';
-import { useForm, useField } from 'vee-validate';
-import { object, string } from 'yup';
-import {
-  ExclamationCircleIcon,
-  CheckCircleIcon,
-  XCircleIcon,
-  ArrowPathIcon
-} from '@heroicons/vue/24/outline';
+import { Field, ErrorMessage, useForm } from 'vee-validate'
 
-// Role options with descriptions
-const roleOptions = [
-  { 
-    value: 'user', 
-    label: 'Standard User', 
-    description: 'Access to basic encoding features and personal dashboard' 
-  },
-  { 
-    value: 'admin', 
-    label: 'Administrator', 
-    description: 'Manage users, view analytics, and configure system settings' 
-  },
-  { 
-    value: 'super_admin', 
-    label: 'Super Admin', 
-    description: 'Full platform control including security settings and API management' 
-  }
-];
 
-// Form validation schema
-const { handleSubmit, errors } = useForm({
-  validationSchema: object({
-    name: string()
-      .required('Full name is required')
-      .min(2, 'Name must be at least 2 characters')
-      .max(50, 'Name must be less than 50 characters'),
-    email: string()
-      .email('Please enter a valid email address')
-      .required('Email is required'),
-    password: string()
-      .required('Password is required')
-      .min(8, 'Password must be at least 8 characters')
-      .matches(
-        /^(?=.*[a-zA-Z])(?=.*[0-9])/,
-        'Password must contain letters and numbers'
-      ),
-    mobile: string()
-      .required('Mobile number is required')
-      .matches(
-        /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/,
-        'Please enter a valid phone number'
-      ),
-    address: string()
-      .required('Address is required')
-      .min(5, 'Address must be at least 5 characters'),
-    callback_key: string()
-      .required('Callback key is required')
-      .min(4, 'Key must be at least 4 characters'),
-    callback_url: string()
-      .required('Callback URL is required')
-      .url('Please enter a valid URL')
-      .matches(
-        /^https?:\/\//,
-        'URL must start with http:// or https://'
-      ),
-    callback_secret_key: string()
-      .required('Secret key is required')
-      .min(8, 'Secret key must be at least 8 characters')
-  }),
-  initialValues: {
-    role: 'user'
-  }
+import * as yup from 'yup';
+import DefaultLayout from '@/layout/DefaultLayout.vue';
+
+
+const schema = yup.object({
+  name: yup
+    .string()
+    .required('Name is required')
+    .min(2, 'Name must be at least 2 characters'),
+
+  email: yup
+    .string()
+    .email('Invalid email format')
+    .required('Email is required'),
+
+  password: yup
+    .string()
+    .required('Password is required')
+    .min(8, 'Password must be at least 8 characters')
+    .matches(/[a-z]/, 'Password must contain at least one lowercase letter')
+    .matches(/[A-Z]/, 'Password must contain at least one uppercase letter')
+    .matches(/\d/, 'Password must contain at least one number')
+    .matches(/[@$!%*#?&]/, 'Password must contain at least one special character'),
+
+  mobile: yup
+    .string()
+    .required('Mobile number is required')
+    .matches(/^[6-9]\d{9}$/, 'Invalid  mobile number'), 
+
+  address: yup
+    .string()
+    .required('Address is required')
+    .min(5, 'Address must be at least 5 characters'),
+
+  callback_key: yup
+    .string()
+    .required('Callback Key is required'),
+
+  callback_url: yup
+    .string()
+    .required('Callback URL is required')
+    .url('Must be a valid URL'),
+
+  callback_secret_key: yup
+    .string()
+    .required('Callback Secret Key is required'),
+
+  role: yup
+    .string()
+    .required('Role is required')
+    .oneOf(['admin', 'user', 'super_admin'], 'Invalid role'), 
 });
 
-// Form fields
-const { value: name } = useField('name');
-const { value: email } = useField('email');
-const { value: password } = useField('password');
-const { value: mobile } = useField('mobile');
-const { value: address } = useField('address');
-const { value: callback_key } = useField('callback_key');
-const { value: callback_url } = useField('callback_url');
-const { value: callback_secret_key } = useField('callback_secret_key');
-const { value: role } = useField('role');
 
-// Form state
-const isSubmitting = ref(false);
-const error = ref('');
-const success = ref('');
 
-// Submit handler
-const register = handleSubmit(async (values) => {
-  isSubmitting.value = true;
-  error.value = '';
-  success.value = '';
+const { handleSubmit, isSubmitting } = useForm({
+  validationSchema: schema
+})
 
-  try {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // In a real app, you would call your API here
-    // const response = await api.post('/register', values);
-    
-    success.value = 'Account created successfully! Redirecting to dashboard...';
-    
-    // Simulate redirect
-    setTimeout(() => {
-      // In a real app, you would navigate to the next page
-      // router.push('/dashboard');
-      isSubmitting.value = false;
-    }, 2000);
-  } catch (err) {
-    error.value = 'Registration failed. Please try again.';
-    isSubmitting.value = false;
-  }
-});
+
+const fields = [
+  { name: 'name', label: 'Name', type: 'text' },
+  { name: 'email', label: 'Email', type: 'email' },
+  { name: 'password', label: 'Password', type: 'password' },
+  { name: 'mobile', label: 'Mobile', type: 'text' },
+  { name: 'address', label: 'Address', type: 'text' },
+  { name: 'callback_key', label: 'Callback Key', type: 'text' },
+  { name: 'callback_url', label: 'Callback URL', type: 'text' },
+  { name: 'callback_secret_key', label: 'Callback Secret Key', type: 'text' },
+  { name: 'role', label: 'Role', type: 'select' },
+]
+
+const onSubmit = handleSubmit(values => {
+  console.log('Form Submitted:', values)
+  
+})
+
 </script>
 
-<style scoped>
-/* Custom animations */
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
 
-.animate-fade-in {
-  animation: fadeIn 0.3s ease-out;
-}
 
-/* Smooth transitions for form sections */
-.form-section {
-  transition: all 0.3s ease;
-}
-</style>

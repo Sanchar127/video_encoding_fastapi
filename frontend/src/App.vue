@@ -1,5 +1,5 @@
 <template>
-  <!-- <router-view> acts as a placeholder where routed components are displayed -->
+
   <div>
     <router-view></router-view>
   </div>
@@ -12,5 +12,5 @@ export default {
 </script>
 
 <style scoped>
-/* Global styles for the App component (if any) */
+
 </style>
