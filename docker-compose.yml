@@ -41,6 +41,7 @@ services:
     networks:
       - fastapi_encoder
   
+
   mysqldb:
     image: mysql:${MYSQL_VERSION}
     container_name: ${CONTAINER_NAME_PREFIX}_mysqldb
@@ -62,7 +63,26 @@ services:
     networks:
       - fastapi_encoder
 
+  frontend:
+    env_file: .env
+    container_name: ${CONTAINER_NAME_PREFIX}_frontend 
+    image: ${CONTAINER_NAME_PREFIX}_frontend
+    restart: unless-stopped
+    
+    build:
+      context: .
+      dockerfile: ./compose/frontend/Dockerfile
+    ports:
+    - "5175:5173"  # Map local 5175 -> container 5173 (Vite dev server)
+    volumes:
+    - ./frontend:/app  # Mount source for hot reload
+    - /app/node_modules  # Prevent overwriting node_modules
+    networks:
+    - fastapi_encoder
 
+
+
+#if i change something inside the content of frontend it is not changing for change my docker again to restart 
 
   # test-mysqldb:
   #   image: mysql:${MYSQL_VERSION}
