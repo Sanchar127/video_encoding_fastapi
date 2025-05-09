@@ -123,6 +123,7 @@ def get_all_users(db: Session = Depends(get_db), current_user: User = Depends(ge
 def get_user_ById(id: str = Query(..., description="User Unique id  "),db: Session = Depends(get_db), current_user: User = Depends(get_admin_user)):
     """
 	Get user data by Id.
+    Bacially it is use to get data of single user.
 	"""    
     db_user = db.query(User).filter(User.unique_id == id).first()
     return db_user

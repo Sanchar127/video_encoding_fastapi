@@ -106,7 +106,7 @@ export default {
 
       console.log('Login successful:', response.data);
       toast.success('Login successfully!');
-      router.push('/');
+      // router.push('/');
       localStorage.setItem('access_token', response.data.access_token);
 
     } catch (error: any) {

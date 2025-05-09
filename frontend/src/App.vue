@@ -8,7 +8,7 @@
 <script lang="ts">
 
 export default {
-  name: 'App', // The name of the component, useful for debugging
+  name: 'App',
 };
 </script>
 

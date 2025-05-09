@@ -106,7 +106,6 @@
 
 <script setup lang="ts">
 import { Field, ErrorMessage, useForm } from 'vee-validate'
-import * as yup from 'yup'
 import DefaultLayout from '@/layout/DefaultLayout.vue'
 import axios from 'axios';
 import UserIcon from '@/components/icons/UserIcon.vue'
@@ -114,62 +113,20 @@ import EmailIcon from '@/components/icons/EmailIcon.vue'
 import MobileIcon from '@/components/icons/MobileIcon.vue'
 import { useRouter } from 'vue-router'
 import { useToast } from 'vue-toastification'
+import Cookies from 'js-cookie';
+import { userSchema } from '../validation/userFormSchema';
+
+// Fetch the access_token from cookies
+const accessToken = Cookies.get('access_token');
+
 const router = useRouter(); 
 const toast = useToast();  
 
 const apiUrl = 'http://localhost:8084/users/create';
 
-const schema = yup.object({
-  name: yup
-    .string()
-    .required('Name is required')
-    .min(2, 'Name must be at least 2 characters'),
-
-  email: yup
-    .string()
-    .email('Invalid email format')
-    .required('Email is required'),
-
-  password: yup
-    .string()
-    .required('Password is required')
-    .min(8, 'Password must be at least 8 characters')
-    .matches(/[a-z]/, 'Password must contain at least one lowercase letter')
-    .matches(/[A-Z]/, 'Password must contain at least one uppercase letter')
-    .matches(/\d/, 'Password must contain at least one number')
-    .matches(/[@$!%*#?&]/, 'Password must contain at least one special character'),
-
-  mobile: yup
-    .string()
-    .required('Mobile number is required')
-    .matches(/^[6-9]\d{9}$/, 'Invalid mobile number'),
-
-  address: yup
-    .string()
-    .required('Address is required')
-    .min(5, 'Address must be at least 5 characters'),
-
-  callback_key: yup
-    .string()
-    .required('Callback Key is required'),
-
-  callback_url: yup
-    .string()
-    .required('Callback URL is required')
-    .url('Must be a valid URL'),
-
-  callback_secret_key: yup
-    .string()
-    .required('Callback Secret Key is required'),
-
-  role: yup
-    .string()
-    .required('Role is required')
-    .oneOf(['admin', 'user', 'super_admin'], 'Invalid role'),
-})
 
 const { handleSubmit, isSubmitting } = useForm({
-  validationSchema: schema
+  validationSchema: userSchema
 })
 
 const fields = [
@@ -196,15 +153,15 @@ const onSubmit = handleSubmit(async (values) => {
 
   console.log('Form Submitted:', userData);
   
-  const token = localStorage.getItem('access_token');
+  
   try {
     const response = await axios.post(apiUrl, userData, {
-  headers: {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`,  
-  },
-  withCredentials: true
-});
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,  // Pass token from cookies
+        'Content-Type': 'application/json',
+      },
+      withCredentials: true, // So cookies are sent
+    });
 
 
 
@@ -222,5 +179,9 @@ const onSubmit = handleSubmit(async (values) => {
 
 
 </script>
+
+
+
+
 
 

@@ -1,7 +1,7 @@
 <template>
     <DefaultLayout>
 
-        <div class="min-h-screen flex items-center justify-center bg-gray-100 p-6">
+        <div class="min-h-screen flex items-center justify-center p-6">
           <div class="bg-white shadow-xl rounded-2xl p-8 w-full max-w-md">
             <h2 class="text-2xl font-bold mb-6 text-center">Create Encode Profile</h2>
             <form @submit.prevent="handleSubmit" class="space-y-4">
@@ -65,32 +65,32 @@ const handleSubmit = async () => {
 console.log(selectedUser.unique_id)
   const payload = {
     
-    encodeProfileName: encodeProfileName.value,
-    userId: selectedUser.unique_id
+    name: encodeProfileName.value,
+    user_id: selectedUser.unique_id
   }  
-
+console.log(payload)
   try {
-    const token = localStorage.getItem('access_token')
+   
     const response = await axios.post('http://localhost:8084/encode-profile', payload, {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        Authorization: `Bearer ${token}`,
-      }
-    })
+  headers: {
+    'Content-Type': 'application/json'
+  }
+})
+
     console.log('Profile created successfully:', response.data)
   } catch (error) {
     console.error('Failed to create encode profile:', error)
   }
 }
-//it select same unique id even though i pick different user 
+
 
 const fetchUsers = async () => {
   try {
-    const token = localStorage.getItem('access_token')
+  
     const response = await axios.get('http://localhost:8084/users', {
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+
       }
     })
     users.value = response.data
