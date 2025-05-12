@@ -246,7 +246,7 @@ const apiUrl = 'http://localhost:8084'
 const users = ref<any[]>([])
 const toast = useToast()
 
-// Edit modal state
+
 const showEditModal = ref(false)
 const editingUser = ref<any>({
   id: '',

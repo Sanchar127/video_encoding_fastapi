@@ -3,7 +3,7 @@
     <div class="max-w-6xl mx-auto my-12 px-4">
       <!-- Header -->
        <div class="bg-gradient-to-r from-gray-200 to-gray-200 shadow-lg rounded-2xl p-2 mb-10 border border-gray-100 ">
-        <h1 class="text-4xl font-bold text-gray-900 ">Encode Profiles </h1>
+        <h1 class="text-4xl font-bold text-gray-900 ">Job List </h1>
         
       </div>
 
@@ -20,32 +20,35 @@
       </div>
 
     <!-- Profiles Table -->
-<div v-else-if="profiles.length > 0" class="bg-white shadow rounded-xl overflow-x-auto">
+<div v-else-if="Job.length > 0" class="bg-white shadow rounded-xl overflow-x-auto">
   <table class="min-w-full table-auto">
     <thead class="bg-gray-700 text-white">
       <tr>
-        <th class="px-6 py-3 text-left text-sm font-semibold">Profile Name</th>
-        <th class="px-6 py-3 text-left text-sm font-semibold">User Name</th>
-        <th class="px-6 py-3 text-left text-sm font-semibold">Actions</th>
+        <th class="px-6 py-3 text-left text-sm font-semibold">filename:</th>
+        <th class="px-6 py-3 text-left text-sm font-semibold">Job_by</th>
+        <th class="px-6 py-3 text-left text-sm font-semibold">Encoding Profile</th>
+        <th class="px-6 py-3 text-left text-sm font-semibold">Encoding Profile Details</th>
+      
+        <th class="px-6 py-3 text-left text-sm font-semibold">Satus</th>
+   
+   
       </tr>
     </thead>
     <tbody class="text-gray-800">
-      <tr
-        v-for="profile in profiles"
-        :key="profile.id"
-        class="hover:bg-gray-100 transition"
-      >
-        <td class="px-6 py-4 text-sm">{{ profile.name }}</td>
-        <td class="px-6 py-4 text-sm">{{ profile.user?.name ?? 'Unknown' }}</td>
-        <td class="px-6 py-4 text-sm">
-          <button
-            @click="openEditModal(profile)"
-            class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 border border-gray-300 rounded-lg hover:bg-gray-300 transition"
-          >
-            <EditIcon class="w-4 h-4" />
-            Edit
-          </button>
-        </td>
+    <tr v-for="job in Job" :key="job.id">
+
+      <td class="px-6 py-4 text-sm">{{ job.video_filename }}</td>
+<td class="px-6 py-4 text-sm">{{ job.job_by ?? 'Unknown' }}</td>
+<td class="px-6 py-4 text-sm">{{ job.encoding_profile }}</td>
+<td class="px-6 py-4 text-sm">{{ job.encoding_profileDetails }}</td>
+<td class="px-6 py-4 text-sm">{{ job.status }}</td>
+<td class="px-6 py-4 text-sm flex items-center gap-2">
+
+  <span v-if="job.status === 'completed'" title="Retry">
+   
+ <font-awesome-icon :icon="['fas', 'rotate-right']" />
+  </span>
+</td>
       </tr>
     </tbody>
   </table>
@@ -72,7 +75,7 @@
         </button>
       </div>
 
-      <!-- Edit Modal -->
+      <!-- Edit Modal
       <div
         v-if="editModal"
         class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50"
@@ -90,78 +93,77 @@
             <button @click="updateProfile" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500">Save</button>
           </div>
         </div>
-      </div>
+      </div> -->
     </div>
   </DefaultLayout>
 </template>
 
-
-<!-- i want to list profile name and username on the top and the data is below  -->
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import { useToast } from 'vue-toastification'
 import DefaultLayout from '../../layout/DefaultLayout.vue'
-import EditIcon from '../../components/icons/EditIcon.vue'
 
 const apiUrl = 'http://localhost:8084'
-const profiles = ref<any[]>([])
+const Job = ref<any[]>([])
 const loading = ref(true)
 const toast = useToast()
 
 // Modal State
-const editModal = ref(false)
-const selectedProfileId = ref<string | null>(null)
-const editForm = ref({ name: '', user_id: '' })
+// const editModal = ref(false)
+// const selectedProfileId = ref<string | null>(null)
+// const editForm = ref({ name: '', user_id: '' })
 
-const fetchProfiles = async () => {
+const fetchJob = async () => {
   loading.value = true
   try {
-    const res = await axios.get(`${apiUrl}/encodeprofile`)
-    profiles.value = Array.isArray(res.data) ? res.data : [res.data]
+    const res = await axios.get(`${apiUrl}/job`)
+    console.log(res.data)
+    Job.value = Array.isArray(res.data) ? res.data : [res.data]
+    console.log('this is my job' ,Job)
   } catch (error: any) {
-    toast.error('Failed to fetch profiles: ' + (error.response?.data?.detail || error.message))
-    profiles.value = []
+    toast.error('Failed to fetch job: ' + (error.response?.data?.detail || error.message))
+    Job.value = []
   } finally {
     loading.value = false
   }
 }
 
-const refreshData = () => fetchProfiles()
+const refreshData = () => fetchJob()
 
-const openEditModal = (profile: any) => {
-  selectedProfileId.value = profile.id
-  editForm.value.name = profile.name
-  editForm.value.user_id = profile.user?.unique_id || ''
-  editModal.value = true
-}
+// const openEditModal = (profile: any) => {
+//   selectedProfileId.value = profile.id
+//   editForm.value.name = profile.name
+//   editForm.value.user_id = profile.user?.unique_id || ''
+//   editModal.value = true
+// }
 
-const updateProfile = async () => {
-  if (!selectedProfileId.value) return
+// const updateProfile = async () => {
+//   if (!selectedProfileId.value) return
 
-  try {
-    await axios.put(
-      `${apiUrl}/encodeprofile/update`,
-      {
-        name: editForm.value.name,
-        user_id: editForm.value.user_id,
-      },
-      {
-        params: { id: selectedProfileId.value },
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-    )
+//   try {
+//     await axios.put(
+//       `${apiUrl}/job`,
+//       {
+//         name: editForm.value.name,
+//         user_id: editForm.value.user_id,
+//       },
+//       {
+//         params: { id: selectedProfileId.value },
+//         headers: {
+//           'Content-Type': 'application/json',
+//         },
+//       }
+//     )
 
-    toast.success('Profile updated successfully')
-    editModal.value = false
-    await fetchProfiles()
-  } catch (error: any) {
-    toast.error('Update failed: ' + (error.response?.data?.detail || error.message))
-  }
-}
+//     toast.success('Profile updated successfully')
+//     editModal.value = false
+//     await fetchProfiles()
+//   } catch (error: any) {
+//     toast.error('Update failed: ' + (error.response?.data?.detail || error.message))
+//   }
+// }
 
-onMounted(fetchProfiles)
+onMounted(fetchJob)
 </script>
