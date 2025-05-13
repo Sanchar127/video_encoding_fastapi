@@ -1,6 +1,6 @@
 <template>
   <DefaultLayout>
-    <div class="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+    <div class="min-h-screen  flex items-center justify-center px-4">
       <div class="w-full max-w-2xl p-8 bg-white rounded-lg shadow-md">
         <h2 class="text-3xl font-semibold text-gray-800 mb-6 text-center">Create New User</h2>
 
@@ -114,7 +114,7 @@ import MobileIcon from '@/components/icons/MobileIcon.vue'
 import { useRouter } from 'vue-router'
 import { useToast } from 'vue-toastification'
 import Cookies from 'js-cookie';
-import { userSchema } from '../validation/userFormSchema';
+import { userSchema } from '../../validation/userFormSchema';
 
 // Fetch the access_token from cookies
 const accessToken = Cookies.get('access_token');

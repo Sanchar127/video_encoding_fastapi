@@ -1,7 +1,7 @@
 <template>
-  <DefaultLayout>
-    <div class="max-w-md mx-auto mt-10 p-6 bg-white rounded shadow">
-      <h1 class="text-3xl font-bold mb-6 text-center">Enter Your credentails</h1>
+
+    <div class="max-w-md mx-auto mt-20 p-6 bg-white rounded shadow">
+      <h1 class="text-3xl font-bold mb-6 text-center">Login</h1>
       <form @submit.prevent="handleSubmit">
         <div class="mb-4">
           <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
@@ -11,7 +11,7 @@
               v-model="email"
               type="email"
               id="email"
-              class="mt-1 block w-full pl-10 pr-4 py-2 border border-gray-300 rounded focus:ring focus:ring-blue-300"
+              class="mt-1 block w-full pl-10 pr-4 py-2 border border-gray-100 rounded focus:ring focus:ring-gray-50"
               placeholder="you@example.com"
               required
             />
@@ -25,7 +25,7 @@
             v-model="password"
             type="password"
             id="password"
-            class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded focus:ring focus:ring-blue-300"
+            class="mt-1 block w-full pl-10 pr-4 py-2 border border-gray-100 rounded focus:ring focus:ring-gray-50"
             placeholder="••••••••"
             required
           />
@@ -40,7 +40,7 @@
         </button>
       </form>
     </div>
-  </DefaultLayout>
+
 </template>
 
 <script lang="ts">
@@ -127,4 +127,3 @@ export default {
   },
 };
 </script>
-

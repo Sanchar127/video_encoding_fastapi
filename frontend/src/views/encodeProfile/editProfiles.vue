@@ -96,7 +96,6 @@
 </template>
 
 
-<!-- i want to list profile name and username on the top and the data is below  -->
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
@@ -165,3 +164,4 @@ const updateProfile = async () => {
 
 onMounted(fetchProfiles)
 </script>
+
