@@ -1,6 +1,6 @@
 <template>
   <DefaultLayout>
-    <div class="min-h-screen  flex items-center justify-center px-4">
+    <div class="min-h-screen bg-gray-50 flex items-center justify-center px-4">
       <div class="w-full max-w-2xl p-8 bg-white rounded-lg shadow-md">
         <h2 class="text-3xl font-semibold text-gray-800 mb-6 text-center">Create New User</h2>
 
@@ -125,9 +125,7 @@ const toast = useToast();
 const apiUrl = 'http://localhost:8084/users/create';
 
 
-const { handleSubmit, isSubmitting } = useForm({
-  validationSchema: userSchema
-})
+
 
 const fields = [
   { name: 'name', label: 'Name', type: 'text' },
@@ -142,46 +140,35 @@ const fields = [
   
 ]
 
+const { handleSubmit } = useForm({
+  validationSchema: userSchema
+})
+
 const onSubmit = handleSubmit(async (values) => {
-
-  const userData = {
-    ...values, 
-    status: true, 
-    email_notification_status: true, 
-    email_notification: true, 
-  };
-
-  console.log('Form Submitted:', userData);
-  
-  
   try {
-    const response = await axios.post(apiUrl, userData, {
+    const accessToken = Cookies.get('access_token'); 
+    console.log(accessToken)
+    const response = await axios.post(apiUrl, values, {
       headers: {
-        'Authorization': `Bearer ${accessToken}`,  // Pass token from cookies
-        'Content-Type': 'application/json',
-      },
-      withCredentials: true, // So cookies are sent
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      }
     });
 
-
-
-
-    console.log('User creation successful:', response.data);
-    
-    toast.success('User created successfully!');
-    router.push('/');
+    if (response.status === 200) {
+      toast.success('User created successfully!');
+      router.push('/user/manage')
+    }
   } catch (error: any) {
-    console.error('User creation failed:', error.response?.data?.detail || error.message);
-    toast.error('Failed to create user: ' + (error.response?.data?.detail || error.message));
+    const errorMsg = error.response?.data?.detail || error.message;
+    toast.error(`Creation failed: ${errorMsg}`);
+
+    if (error.response?.status === 401) {
+      router.push('/login');
+    }
   }
 });
 
 
 
 </script>
-
-
-
-
-
-

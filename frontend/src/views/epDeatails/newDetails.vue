@@ -1,7 +1,7 @@
 <template>
   <DefaultLayout>
     <div class="min-h-screen flex items-center justify-center p-6 ">
-      <div class="bg-white shadow-2xl rounded-3xl p-10 w-full max-w-4xl">
+      <div class="bg-white shadow-2xl rounded-3xl p-10 w-full max-w-6xl">
         <h2 class="text-3xl font-bold mb-10 text-center text-gray-800">
           Create Encode Profile Details
         </h2>

@@ -1,8 +1,6 @@
 import { createRouter, createWebHistory, RouteRecordRaw, viewDepthKey } from 'vue-router';
 import LoginPage from '@/views/LoginPage.vue';
 import EncodeProfilesPage from '../views/EncodeProfilesPage.vue';
-import AdminDashBoardPage from '../views/AdminDashBoardPage.vue';
-import SuperAdminDashBoardPage from '../views/SuperAdminDashBoardPage.vue';
 import EditUser from '../views/user/EditUser.vue';
 import New from '../views/epDeatails/newDetails.vue';
 import JobList from '../views/job/JobList.vue';
@@ -14,6 +12,10 @@ import NewDetails from '../views/epDeatails/newDetails.vue';
 import EditDetails from '../views/epDeatails/EditDetails.vue';
 import ManageDetails from '../views/epDeatails/manageDetails.vue';
 import LoginPage from '../views/LoginPage.vue';
+import AdminDashBoardPage from '../views/AdminDashBoardPage.vue';
+
+import SystemConfig from '../views/SystemConfig.vue';
+import SuperAdDash from '../views/SuperAdDash.vue';
 
 const routes: RouteRecordRaw[] = [
   { path: '/login', name: 'Login', component: LoginPage },
@@ -26,8 +28,10 @@ const routes: RouteRecordRaw[] = [
  {path:'/jobList',name:'view Job list and retry failJob',component:JobList},
  {path:'/user/manage',name:'Manage User Dashboard',component:Manage},
  {path:'/profile/manage',name:'Manage Encode Profile Dashboard',component:ManageProfile},
- {path:'/ProfileDetails/manage',name:'Manage Profile Details Dashboard',component:ManageDetails}
-
+ {path:'/ProfileDetails/manage',name:'Manage Profile Details Dashboard',component:ManageDetails},
+ {path:'/admin/dashboard',name:'admin dashboard',component:AdminDashBoardPage},
+ {path:'/superadmin/dashboard',name:'Superadmin dashboard',component:SuperAdDash},
+{path:'/systemconfig',name:'Sytem configuration',component:SystemConfig}
 ];
 
 const router = createRouter({

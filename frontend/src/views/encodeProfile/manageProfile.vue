@@ -48,22 +48,11 @@
               <span class="text-2xl font-bold text-blue-600">{{ filteredProfiles.length }}</span>
             </div>
           </div>
-          <div class="bg-green-50 p-4 rounded-lg border border-green-100">
-            <div class="flex items-center justify-between">
-              <h3 class="text-sm font-medium text-green-800">Active Users</h3>
-              <span class="text-2xl font-bold text-green-600">{{ uniqueUsersCount }}</span>
-            </div>
-          </div>
-          <div class="bg-purple-50 p-4 rounded-lg border border-purple-100">
-            <div class="flex items-center justify-between">
-              <h3 class="text-sm font-medium text-purple-800">Last Updated</h3>
-              <span class="text-sm font-semibold text-purple-600">{{ lastUpdated }}</span>
-            </div>
-          </div>
+        
         </div>
       </div>
 
-      <!-- Loading State -->
+      
       <div v-if="loading" class="bg-white shadow rounded-xl p-6">
         <div class="animate-pulse space-y-6">
           <div v-for="i in 3" :key="i" class="flex items-center gap-4">
@@ -76,7 +65,6 @@
         </div>
       </div>
 
-      <!-- Profiles Table -->
       <div v-else-if="filteredProfiles.length > 0" class="bg-white shadow rounded-xl overflow-hidden">
         <div class="overflow-x-auto">
           <table class="min-w-full divide-y divide-gray-200">
@@ -84,7 +72,6 @@
               <tr>
                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Profile Name</th>
                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
                 <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
@@ -107,9 +94,7 @@
                   <div class="text-sm text-gray-900">{{ profile.user?.name || 'Unknown' }}</div>
                   <div class="text-sm text-gray-500">{{ profile.user?.email || 'No email' }}</div>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {{ formatDate(profile.created_at) || 'Unknown' }}
-                </td>
+                
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <button
                     @click="openEditModal(profile)"
@@ -198,63 +183,21 @@
         </button>
       </div>
 
-      <!-- Edit Modal -->
       <div
         v-if="editModal"
-        class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-4"
+        class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50"
       >
         <div class="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
-          <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-semibold text-gray-800">Edit Profile</h2>
-            <button @click="editModal = false" class="text-gray-400 hover:text-gray-500">
-              <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-          
-          <div class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Profile Name</label>
-              <input
-                v-model="editForm.name"
-                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                type="text"
-                placeholder="Enter profile name"
-              />
-            </div>
-            
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">User</label>
-              <select
-                v-model="editForm.user_id"
-                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="" disabled>Select user</option>
-                <option v-for="user in users" :key="user.id" :value="user.id">
-                  {{ user.name }} ({{ user.email }})
-                </option>
-              </select>
-            </div>
-          </div>
-          
-          <div class="mt-6 flex justify-end gap-3">
-            <button
-              @click="editModal = false"
-              class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition"
-            >
-              Cancel
-            </button>
-            <button
-              @click="updateProfile"
-              class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition flex items-center gap-2"
-            >
-              <svg v-if="updating" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              {{ updating ? 'Saving...' : 'Save Changes' }}
-            </button>
+          <h2 class="text-xl font-semibold text-gray-800 mb-4">Edit Profile</h2>
+          <label class="block mb-2 text-sm font-medium text-gray-700">Profile Name</label>
+          <input
+            v-model="editForm.name"
+            class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            type="text"
+          />
+          <div class="mt-6 flex justify-end gap-2">
+            <button @click="editModal = false" class="px-4 py-2 bg-gray-100 rounded-md hover:bg-gray-200">Cancel</button>
+            <button @click="updateProfile" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500">Save</button>
           </div>
         </div>
       </div>
@@ -279,17 +222,10 @@ const toast = useToast()
 const searchQuery = ref('')
 const itemsPerPage = 10
 
-// Modal States
+// Modal State
 const editModal = ref(false)
-
-const updating = ref(false)
-
 const selectedProfileId = ref<string | null>(null)
-
-const editForm = ref({
-  name: '',
-  user_id: ''
-})
+const editForm = ref({ name: '', user_id: '' })
 
 // Pagination
 const pagination = ref({
@@ -314,6 +250,7 @@ const filteredProfiles = computed(() => {
 
 const uniqueUsersCount = computed(() => {
   const userIds = new Set(profiles.value.map(p => p.user?.id).filter(Boolean))
+  console.log(userIds)
   return userIds.size
 })
 
@@ -390,19 +327,15 @@ const refreshData = () => {
 
 const openEditModal = (profile: any) => {
   selectedProfileId.value = profile.id
-  editForm.value = {
-    name: profile.name,
-    user_id: profile.user?.id || ''
-  }
+  editForm.value.name = profile.name
+  editForm.value.user_id = profile.user?.unique_id || ''
   editModal.value = true
 }
-
 
 
 const updateProfile = async () => {
   if (!selectedProfileId.value) return
 
-  updating.value = true
   try {
     await axios.put(
       `${apiUrl}/encodeprofile/update`,
@@ -423,8 +356,6 @@ const updateProfile = async () => {
     await fetchProfiles()
   } catch (error: any) {
     toast.error('Update failed: ' + (error.response?.data?.detail || error.message))
-  } finally {
-    updating.value = false
   }
 }
 

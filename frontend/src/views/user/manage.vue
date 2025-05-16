@@ -1,12 +1,12 @@
 <template>
   <DefaultLayout>
     <div class="min-h-screen  py-8 px-4 sm:px-6 lg:px-8">
-      <div class="max-w-7xl mx-auto">
-        <!-- Header Section -->
+      <div class="max-w-full mx-5">
+     
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
           <div>
             <h1 class="text-2xl md:text-3xl font-bold text-gray-900">User Management</h1>
-            <p class="mt-1 text-sm text-gray-500">Manage all registered users and their permissions</p>
+
           </div>
           <div class="flex gap-3 w-full sm:w-auto">
             <div class="relative flex-grow sm:flex-grow-0 sm:w-64">
@@ -15,13 +15,20 @@
               </div>
               <input
                 type="text"
-                class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-200 0 sm:text-sm"
                 placeholder="Search users..."
               />
             </div>
-            <button class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            <router-link to="/user/new">
+
+              <button class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200">
+                <PlusIcon class="-ml-1 mr-2 h-5 w-5" />
+                Add User
+              </button>
+            </router-link>
+            <button class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-500 hover:bg-red-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200">
               <PlusIcon class="-ml-1 mr-2 h-5 w-5" />
-              Add User
+              Black List User
             </button>
           </div>
         </div>
@@ -38,7 +45,7 @@
                   <dl>
                     <dt class="text-sm font-medium text-gray-500 truncate">Total Users</dt>
                     <dd class="flex items-baseline">
-                      <div class="text-2xl font-semibold text-gray-900">1223</div>
+                      <div class="text-2xl font-semibold text-gray-900">{{ totalUsers }}</div>
                     </dd>
                   </dl>
                 </div>
@@ -55,12 +62,8 @@
                   <dl>
                     <dt class="text-sm font-medium text-gray-500 truncate">Active Users</dt>
                     <dd class="flex items-baseline">
-                      <div class="text-2xl font-semibold text-gray-900">1,042</div>
-                      <div class="ml-2 flex items-baseline text-sm font-semibold text-green-600">
-                        <ArrowTrendingUpIcon class="h-4 w-4" />
-                        <span class="sr-only">Increased by</span>
-                        12%
-                      </div>
+                      <div class="text-2xl font-semibold text-gray-900">{{activeUsers}}</div>
+                     
                     </dd>
                   </dl>
                 </div>
@@ -84,26 +87,7 @@
               </div>
             </div>
           </div>
-          <div class="bg-white overflow-hidden shadow rounded-lg">
-            <div class="px-4 py-5 sm:p-6">
-              <div class="flex items-center">
-                <div class="flex-shrink-0 bg-blue-500 rounded-md p-3">
-                  <BellAlertIcon class="h-6 w-6 text-white" />
-                </div>
-                <div class="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt class="text-sm font-medium text-gray-500 truncate">Notifications Enabled</dt>
-                    <dd class="flex items-baseline">
-                      <div class="text-2xl font-semibold text-gray-900">932</div>
-                      <div class="ml-2 flex items-baseline text-sm font-semibold text-blue-600">
-                        <span>75%</span>
-                      </div>
-                    </dd>
-                  </dl>
-                </div>
-              </div>
-            </div>
-          </div>
+         
         </div>
 
         <!-- Main Table -->
@@ -115,9 +99,9 @@
                 <div class="relative">
                   <select class="appearance-none block w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white">
                     <option>All Roles</option>
-                    <option>Admin</option>
-                    <option>User</option>
-                    <option>Manager</option>
+                    <option>admin</option>
+                    <option>user</option>
+                    <option>super_admin</option>
                   </select>
                   <div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
                     <ChevronDownIcon class="h-5 w-5 text-gray-400" />
@@ -134,19 +118,7 @@
                   </div>
                 </div>
               </div>
-              <div class="flex items-center space-x-3">
-                <button type="button" class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                  <ArrowDownTrayIcon class="-ml-0.5 mr-2 h-4 w-4" />
-                  Export
-                </button>
-                <div class="relative" x-data="{ open: false }">
-                  <button @click="open = !open" type="button" class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                    <FunnelIcon class="-ml-0.5 mr-2 h-4 w-4" />
-                    Columns
-                    <ChevronDownIcon class="ml-1.5 -mr-1 h-5 w-5 text-gray-400" />
-                  </button>
-                </div>
-              </div>
+            
             </div>
 
             <!-- Responsive Table Container -->
@@ -159,10 +131,11 @@
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notifications</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Integration</th>
-                    <th scope="col" class="relative px-6 py-3">
-                      <span class="sr-only">Actions</span>
-                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">callback key</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">callback url</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">callback secret key</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action </th>
+                    
                   </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
@@ -177,7 +150,7 @@
                         </div>
                         <div class="ml-4">
                           <div class="text-sm font-medium text-gray-900">{{ user.name }}</div>
-                          <div class="text-sm text-gray-500">ID: {{ user.id }}</div>
+                      
                         </div>
                       </div>
                     </td>
@@ -228,8 +201,17 @@
                         </span>
                       </div>
                     </td>
-                    
-                    <!-- Integration Column -->
+                 
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="flex items-center">
+                        
+                        <div class="ml-4">
+                          <div class="text-sm font-medium text-gray-900">{{ user.callback_key }}</div>
+                      
+                        </div>
+                      </div>
+                    </td>
+
                     <td class="px-6 py-4">
                       <div class="text-sm text-gray-900 truncate max-w-[180px]" :title="user.callback_url || 'Not configured'">
                         <span v-if="user.callback_url" class="flex items-center text-indigo-600">
@@ -240,15 +222,22 @@
                       </div>
                     </td>
                     
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="flex items-center">
+                      
+                        <div class="ml-4">
+                          <div class="text-sm font-medium text-gray-900">{{ user.callback_secret_key }}</div>
+                      
+                        </div>
+                      </div>
+                    </td>
                     <!-- Actions Column -->
                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div class="flex justify-end space-x-3">
                         <button @click="openEditModal(user)" class="text-indigo-600 hover:text-indigo-900">
                           <PencilSquareIcon class="h-5 w-5" />
                         </button>
-                        <button class="text-gray-500 hover:text-gray-700">
-                          <EllipsisVerticalIcon class="h-5 w-5" />
-                        </button>
+                    
                       </div>
                     </td>
                   </tr>
@@ -366,9 +355,9 @@
                           id="role"
                           class="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                         >
-                          <option value="admin">Admin</option>
-                          <option value="user">User</option>
-                          <option value="manager">Manager</option>
+                          <option value="admin">admin</option>
+                          <option value="user">user</option>
+                          <option value="manager">super_admin</option>
                         </select>
                       </div>
 
@@ -503,6 +492,7 @@ import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import { useToast } from 'vue-toastification'
 import DefaultLayout from '../../layout/DefaultLayout.vue'
+import {computed} from 'vue'
 import {
   // Heroicons
   UserIcon,
@@ -521,7 +511,6 @@ import {
   CheckCircleIcon,
   ExclamationTriangleIcon,
   BellAlertIcon,
-  ArrowTrendingUpIcon,
   ChevronDownIcon,
   FunnelIcon,
   ArrowDownTrayIcon,
@@ -562,14 +551,22 @@ const fetchUsers = async () => {
   try {
     const res = await axios.get(`${apiUrl}/users`)
     users.value = res.data
+    
   } catch (error: any) {
     toast.error('Failed to fetch user data: ' + (error.response?.data?.detail || error.message))
     console.error(error)
   }
 }
+ 
+const totalUsers = computed(() => users.value.length)
+
+const activeUsers = computed(() => 
+  users.value.filter(user => user.is_activated).length
+)
+
 
 const openEditModal = (user: any) => {
-  editingUser.value = JSON.parse(JSON.stringify(user)) // Deep copy
+  editingUser.value = JSON.parse(JSON.stringify(user)) 
   showEditModal.value = true
 }
 
@@ -595,7 +592,32 @@ const saveUser = async () => {
   }
 }
 
+const fetchBlacklistedUsers = async () => {
+  try {
+    const res = await axios.get(`${apiUrl}/blacklisted-tokens/details`)
+    users.value = res.data
+  } catch (error: any) {
+    toast.error('Failed to fetch user data: ' + (error.response?.data?.detail || error.message))
+    console.error(error)
+  }
+}
+
 onMounted(() => {
   fetchUsers()
+  // fetchBlacklistedUsers()
 })
 </script>
+
+
+
+
+<!-- <div class="mb-4 flex gap-4">
+  <div class="bg-white shadow p-4 rounded w-full text-center">
+    <div class="text-gray-500">Total Users</div>
+    <div class="text-2xl font-bold">{{ totalUsers }}</div>
+  </div>
+  <div class="bg-white shadow p-4 rounded w-full text-center">
+    <div class="text-gray-500">Active Users</div>
+    <div class="text-2xl font-bold">{{ activeUsers }}</div>
+  </div>
+</div> -->

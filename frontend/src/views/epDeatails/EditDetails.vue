@@ -1,6 +1,6 @@
 <template>
   <DefaultLayout>
-    <div class="max-w-6xl mx-auto my-1 px-4 justify-start items-center">
+    <div class="max-w-full mx-2 my-1 px-4 justify-start items-center">
 
       <div class="bg-gradient-to-r from-gray-200 to-gray-200 shadow-lg rounded-2xl p-2 mb-10 border border-gray-100 ">
         <h1 class="text-4xl font-bold text-gray-900 ">Encode Profiles Details</h1>
@@ -270,6 +270,3 @@ onMounted(fetchProfiles)
 </script>
 
 
-
-
-t

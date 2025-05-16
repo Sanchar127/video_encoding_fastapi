@@ -2,7 +2,7 @@
   <div class="flex flex-col gap-4 w-full max-w-3xl mx-auto p-4">
     <!-- Dashboard -->
     <router-link 
-      to="/dashboard" 
+      to="/admin/dashboard" 
       v-slot="{ navigate, isActive }"
       custom
     >

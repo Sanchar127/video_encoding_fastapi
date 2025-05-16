@@ -1,6 +1,7 @@
-<template>
 
-    <div class="max-w-md mx-auto mt-20 p-6 bg-white rounded shadow">
+<template>
+  <DefaultLayout>
+    <div class="max-w-md mx-auto mt-10 p-6 bg-white rounded shadow">
       <h1 class="text-3xl font-bold mb-6 text-center">Login</h1>
       <form @submit.prevent="handleSubmit">
         <div class="mb-4">
@@ -11,7 +12,7 @@
               v-model="email"
               type="email"
               id="email"
-              class="mt-1 block w-full pl-10 pr-4 py-2 border border-gray-100 rounded focus:ring focus:ring-gray-50"
+              class="mt-1 block w-full pl-10 pr-4 py-2 border border-gray-300 rounded focus:ring focus:ring-blue-300"
               placeholder="you@example.com"
               required
             />
@@ -25,7 +26,7 @@
             v-model="password"
             type="password"
             id="password"
-            class="mt-1 block w-full pl-10 pr-4 py-2 border border-gray-100 rounded focus:ring focus:ring-gray-50"
+            class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded focus:ring focus:ring-blue-300"
             placeholder="••••••••"
             required
           />
@@ -40,90 +41,46 @@
         </button>
       </form>
     </div>
-
+  </DefaultLayout>
 </template>
-
 <script lang="ts">
 import { ref } from 'vue';
 import axios from 'axios';
-import DefaultLayout from '@/layout/DefaultLayout.vue';
-import EmailIcon from '@/components/icons/EmailIcon.vue';
 import { useRouter } from 'vue-router'
 import { useToast } from 'vue-toastification'
-
-
+import Cookies from 'js-cookie';
 
 export default {
-  components: {
-    DefaultLayout,
-    EmailIcon,
-  },
   setup() {
-  const email = ref('');
-  const password = ref('');
-  const emailError = ref('');
-  const passwordError = ref('');
-  const apiUrl = 'http://localhost:8084/token';
+    const email = ref('');
+    const password = ref('');
+    const router = useRouter();
+    const toast = useToast();
 
-  const router = useRouter(); 
-  const toast = useToast();  
+    const handleSubmit = async () => {
+      try {
+        const formData = new URLSearchParams();
+        formData.append('username', email.value);
+        formData.append('password', password.value);
 
-  const validate = () => {
-    emailError.value = '';
-    passwordError.value = '';
-    let isValid = true;
-
-    if (!email.value) {
-      emailError.value = 'Email is required.';
-      isValid = false;
-    } else if (!/\S+@\S+\.\S+/.test(email.value)) {
-      emailError.value = 'Invalid email format.';
-      isValid = false;
-    }
-
-    if (!password.value) {
-      passwordError.value = 'Password is required.';
-      isValid = false;
-    }
-
-    return isValid;
-  };
-
-  const handleSubmit = async () => {
-    if (!validate()) return;
-
-    try {
-      const formData = new URLSearchParams();
-      formData.append('username', email.value);
-      formData.append('password', password.value);
-
-      const response = await axios.post(apiUrl, formData, {
-        headers: {
-          
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-      });
-
-      console.log('Login successful:', response.data);
-      toast.success('Login successfully!');
-      // router.push('/');
-      localStorage.setItem('access_token', response.data.access_token);
-
-    } catch (error: any) {
-      console.error('Login failed:', error.response?.data?.detail || error.message);
-      toast.error('Failed to create user: ' + (error.response?.data?.detail || error.message));
-    }
-  };
-
-  return {
-    email,
-    password,
-    emailError,
-    passwordError,
-    handleSubmit,
-  };
+        const response = await axios.post('http://localhost:8084/token', formData, {
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        });
+        console.log('Login token:', response.data.access_token); 
+        console.log('User role :',response.data.role)
+        // Save token in cookie (not HttpOnly so JS can read it)
+        Cookies.set('access_token', response.data.access_token);
 
 
+        toast.success('Login successful!');
+        router.push('/user/manage');
+      } catch (error: any) {
+        toast.error('Login failed: ' + (error.response?.data?.detail || error.message));
+      }
+    };
+
+    return { email, password, handleSubmit };
   },
 };
 </script>
+

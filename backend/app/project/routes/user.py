@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from typing import List
 from uuid import uuid4
 from fastapi import Query
-from ..schemas.user import UserCreate, UserOut
+from ..schemas.user import UserCreate, UserOut,UserUpdate
 from ..models.user import User
 from ..utils.security import hash_password
 from ..db.database import SessionLocal, redis_client
@@ -30,7 +30,7 @@ def get_db():
 
         
 def get_redis():
-    return redis_client  # your global Redis client
+    return redis_client  
 
 
 def get_current_user(
@@ -99,13 +99,13 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
         "user_uniqueId": user.unique_id,
         "token_type": "bearer"
     })
-    # response.set_cookie(
-    #     key="refresh_token",
-    #     value=refresh_token,
-    #     httponly=True,
-    #     samesite="strict",
-    #     max_age=7 * 24 * 60 * 60  # 7 days
-    # )
+    response.set_cookie(
+        key="refresh_token",
+        value=refresh_token,
+        httponly=True,
+        samesite="strict",
+        max_age=7 * 24 * 60 * 60  # 7 days
+    )
     return response
 
 
