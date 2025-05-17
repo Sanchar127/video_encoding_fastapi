@@ -35,7 +35,7 @@
           <input
             type="text"
             placeholder="Search..."
-            class="w-full pl-12 pr-4 py-2 rounded-full text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-100"
+            class="w-full pl-12 pr-4 py-2 rounded-full text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-100"
           />
         </div>
       </div>
@@ -52,7 +52,7 @@
         </template>
         <template v-else>
           <router-link
-            to="/login"
+            to="/"
             class="bg-blue-500 text-white px-4 py-2 rounded-full hover:bg-blue-600 transition"
           >
             Sign In
@@ -84,7 +84,7 @@
         </template>
         <template v-else>
           <router-link
-            to="/login"
+            to=""
             class="bg-blue-500 text-white px-4 py-2 rounded-full hover:bg-blue-600 transition"
           >
             Sign In
@@ -99,7 +99,9 @@
 
 <script>
 import SearchIcons from './icons/SearchIcons.vue';
-
+import Cookies from 'js-cookie';
+import axios from 'axios';
+const apiurl='http://localhost:8084'
 export default {
   name: 'Navbar',
   components: {
@@ -107,15 +109,39 @@ export default {
   },
   data() {
     return {
-      isAuthenticated: !!localStorage.getItem('access_token'),
+      isAuthenticated: !!Cookies.get('access_token'),
     };
   },
-  methods: {
-    logout() {
-      localStorage.removeItem('access_token');
+
+methods: {
+  async logout() {
+    try {
+      const accessToken = Cookies.get('access_token');
+
+      if (!accessToken) {
+        console.warn('No access token found in cookies.');
+        return;
+      }
+
+      await axios.post(
+            `${apiurl}/logout`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`, // ✅ Send token in Authorization header
+          },
+          withCredentials: true, // ✅ Still needed if your backend clears cookies
+        }
+      );
+
+      // Update frontend state
       this.isAuthenticated = false;
-      this.$router.push('/login');
-    },
-  },
+      // this.$router.push('/');
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  }
+}
+
 };
 </script>

@@ -584,7 +584,7 @@ const saveUser = async () => {
     })
 
     toast.success('User updated successfully')
-    fetchUsers() // Refresh the user list
+    fetchUsers() 
     closeEditModal()
   } catch (error: any) {
     toast.error('Failed to update user: ' + (error.response?.data?.detail || error.message))

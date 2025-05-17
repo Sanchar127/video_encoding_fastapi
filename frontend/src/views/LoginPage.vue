@@ -1,7 +1,7 @@
 
 <template>
   <DefaultLayout>
-    <div class="max-w-md mx-auto mt-10 p-6 bg-white rounded shadow">
+    <div class="max-w-md mx-auto mt-20 p-6 bg-white rounded shadow">
       <h1 class="text-3xl font-bold mb-6 text-center">Login</h1>
       <form @submit.prevent="handleSubmit">
         <div class="mb-4">
@@ -12,7 +12,7 @@
               v-model="email"
               type="email"
               id="email"
-              class="mt-1 block w-full pl-10 pr-4 py-2 border border-gray-300 rounded focus:ring focus:ring-blue-300"
+              class="mt-1 block w-full pl-10 pr-4 py-2 border border-gray-100 rounded focus:ring focus:ring-blue-50"
               placeholder="you@example.com"
               required
             />
@@ -26,7 +26,7 @@
             v-model="password"
             type="password"
             id="password"
-            class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded focus:ring focus:ring-blue-300"
+            class="mt-1 block w-full px-4 py-2 border border-gray-30 rounded focus:ring focus:ring-blue-50"
             placeholder="••••••••"
             required
           />
@@ -49,38 +49,64 @@ import axios from 'axios';
 import { useRouter } from 'vue-router'
 import { useToast } from 'vue-toastification'
 import Cookies from 'js-cookie';
+import { jwtDecode } from 'jwt-decode';
 
 export default {
-  setup() {
-    const email = ref('');
-    const password = ref('');
-    const router = useRouter();
-    const toast = useToast();
+ setup() {
+  const email = ref('');
+  const password = ref('');
+  const router = useRouter();
+  const toast = useToast();
 
-    const handleSubmit = async () => {
-      try {
-        const formData = new URLSearchParams();
-        formData.append('username', email.value);
-        formData.append('password', password.value);
-
-        const response = await axios.post('http://localhost:8084/token', formData, {
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        });
-        console.log('Login token:', response.data.access_token); 
-        console.log('User role :',response.data.role)
-        // Save token in cookie (not HttpOnly so JS can read it)
-        Cookies.set('access_token', response.data.access_token);
+  // Check token and redirect if exists
+  const token = Cookies.get('access_token');
+  if (token) {
+    router.push('/admin/dashboard');
+  }
 
 
-        toast.success('Login successful!');
-        router.push('/user/manage');
-      } catch (error: any) {
-        toast.error('Login failed: ' + (error.response?.data?.detail || error.message));
-      }
-    };
+interface DecodedToken {
+  sub: string;
+  role: string;
+  exp: number;
+}
 
-    return { email, password, handleSubmit };
-  },
+const handleSubmit = async () => {
+  try {
+    const formData = new URLSearchParams();
+    formData.append('username', email.value);
+    formData.append('password', password.value);
+
+    const response = await axios.post('http://localhost:8084/token', formData, {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    });
+
+    const token = response.data.access_token;
+    Cookies.set('access_token', token);
+
+    // Decode role from token
+    const decoded: DecodedToken = jwtDecode(token);
+    const role = decoded.role;
+
+    toast.success('Login successful!');
+
+    // Redirect based on role
+    if (role === 'super_admin') {
+      router.push('/superadmin/dashboard');
+    } else if (role === 'admin') {
+      router.push('/admin/dashboard');
+    } else {
+      router.push('/user/dashboard'); // or another default route
+    }
+  } catch (error: any) {
+    toast.error('Login failed: ' + (error.response?.data?.detail || error.message));
+  }
+};
+
+
+  return { email, password, handleSubmit };
+}
+
 };
 </script>
 

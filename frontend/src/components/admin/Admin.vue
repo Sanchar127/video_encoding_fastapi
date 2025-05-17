@@ -122,7 +122,7 @@
       <!-- Recent Activity and Quick Actions -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Recent Activities -->
-        <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+        <!-- <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
           <h2 class="text-xl font-semibold text-gray-800 mb-6">Recent Activities</h2>
           <div class="space-y-3 max-h-96 overflow-y-auto pr-2">
             <ActivityItem 
@@ -131,7 +131,7 @@
               :activity="activity"
             />
           </div>
-        </div>
+        </div> -->
 
       <!-- Quick Actions -->
 <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 mt-8 mb-8">
@@ -231,17 +231,7 @@ export default {
         totalEncodingProfiles: 0,
         totalEncodingProfileDetails: 0
       },
-      recentActivities: [
-        { id: 1, description: 'John Doe created a new account', time: '2 min ago' },
-        { id: 2, description: 'Encoding job #4567 started', time: '15 min ago' },
-        { id: 3, description: '4K HDR profile updated', time: '1 hour ago' },
-        { id: 4, description: 'Job #4566 completed successfully', time: '2 hours ago' },
-        { id: 5, description: 'Admin logged in', time: '3 hours ago' },
-        { id: 6, description: 'System maintenance completed', time: '5 hours ago' },
-        { id: 7, description: 'New encoding profile added', time: '1 day ago' }
-      ],
-      loading: true,
-      error: null
+      
     }
   },
   methods: {
