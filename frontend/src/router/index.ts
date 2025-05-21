@@ -2,7 +2,9 @@ import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
 import Cookies from 'js-cookie';
 import { jwtDecode } from 'jwt-decode';
 
-// Import your views
+import { useToast } from 'vue-toastification';
+
+// Views
 import LoginPage from '@/views/LoginPage.vue';
 import EncodeProfilesPage from '@/views/EncodeProfilesPage.vue';
 import EditUser from '@/views/user/EditUser.vue';
@@ -17,13 +19,15 @@ import JobList from '@/views/job/JobList.vue';
 import AdminDashboard from '@/views/AdminDashBoardPage.vue';
 import SuperAdminDashboard from '@/views/SuperAdDash.vue';
 import SystemConfig from '@/views/SystemConfig.vue';
+import BlackListUser from '@/views/user/BlackListUser.vue';
+
+const toast = useToast();
 
 interface DecodedToken {
   sub: string;
   role: string;
   exp: number;
 }
-
 
 const routes: RouteRecordRaw[] = [
   { path: '/', name: 'Login', component: LoginPage },
@@ -40,62 +44,84 @@ const routes: RouteRecordRaw[] = [
   { path: '/admin/dashboard', name: 'Admin Dashboard', component: AdminDashboard, meta: { requiresAuth: true } },
   { path: '/superadmin/dashboard', name: 'Super Admin Dashboard', component: SuperAdminDashboard, meta: { requiresAuth: true } },
   { path: '/systemconfig', name: 'System Config', component: SystemConfig, meta: { requiresAuth: true } },
+  { path: '/blacklistUser', name: 'Black list User', component: BlackListUser, meta: { requiresAuth: true } },
 ];
 
-// Create router instance
 const router = createRouter({
   history: createWebHistory(),
   routes,
 });
 
-// Navigation guard
+function isTokenExpired(exp: number): boolean {
+  return exp * 1000 < Date.now();
+}
+
 router.beforeEach((to, from, next) => {
   const token = Cookies.get('access_token');
 
+  if (to.path === '/') {
+    if (token) {
+      try {
+        const decoded = jwtDecode<DecodedToken>(token);
+        const isExpired = decoded.exp * 1000 < Date.now();
+        if (isExpired) {
+          Cookies.remove('access_token');
+          return next(); 
+        }
+   
+        if (decoded.role === 'super_admin') return next('/superadmin/dashboard');
+        if (decoded.role === 'admin') return next('/admin/dashboard');
+        return next('/jobList');
+      } catch {
+        Cookies.remove('access_token');
+        return next();
+      }
+    } else {
+      return next(); // no token, proceed to login
+    }
+  }
+
+
   if (to.meta.requiresAuth) {
     if (!token) {
+      toast.error('Please log in to access this page.');
       return next({ path: '/' });
     }
 
     try {
-      const decoded: DecodedToken = jwtDecode(token);
+      const decoded = jwtDecode<DecodedToken>(token);
       const isExpired = decoded.exp * 1000 < Date.now();
-
       if (isExpired) {
         Cookies.remove('access_token');
+        toast.error('Session expired. Please log in again.');
         return next({ path: '/' });
       }
 
-      // Role-based access (optional)
-      if (to.path.includes('/admin') && decoded.role !== 'admin' && decoded.role !== 'super_admin') {
-        return next({ path: '/' });
+      const role = decoded.role;
+
+     
+      if (to.path.startsWith('/superadmin') && role !== 'super_admin') {
+        toast.error('Access denied: Super Admins only can access this page .');
+        return next('/'); 
       }
 
-      if (to.path.includes('/superadmin') && decoded.role !== 'super_admin') {
-        return next({ path: '/' });
+      if (to.path.startsWith('/admin') && role !== 'admin') {
+        toast.error('Access denied: Admins only can access this page .');
+        return next('/');
       }
 
-    } catch (err) {
+     
+      return next();
+    } catch {
       Cookies.remove('access_token');
+      toast.error('Invalid session. Please log in again.');
       return next({ path: '/' });
     }
   }
 
- 
-  if (to.path === '/' && token) {
-    try {
-      const decoded: DecodedToken = jwtDecode(token);
-      if (decoded.role === 'super_admin') {
-        return next('/superadmin/dashboard');
-      } else if (decoded.role === 'admin') {
-        return next('/admin/dashboard');
-      }
-    } catch {
-      Cookies.remove('access_token');
-    }
-  }
 
   return next();
 });
+
 
 export default router;

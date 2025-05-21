@@ -1,56 +1,56 @@
 <template>
   <DefaultLayout>
     <div class="max-w-7xl mx-auto my-8 px-4 sm:px-6 lg:px-8">
-      <!-- Header with stats and actions -->
-      <div class="bg-white shadow rounded-xl p-6 mb-8 border border-gray-100">
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
-          <div class="flex items-center gap-4">
-            <div class="p-3 bg-blue-100 rounded-lg">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-            </div>
-            <div>
-              <h1 class="text-2xl font-bold text-gray-900">Encode Profiles</h1>
-              <p class="text-gray-500">Manage all encoding profiles in the system</p>
-            </div>
-          </div>
-          
-          <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-            <div class="relative flex-1">
-              <input
-                v-model="searchQuery"
-                type="text"
-                placeholder="Search profiles..."
-                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-              <svg class="absolute left-3 top-2.5 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </div>
-            <button
-              @click="refreshData"
-              class="flex items-center gap-2 px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 transition"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-              Refresh
-            </button>
-          </div>
-        </div>
-        
-        <!-- Stats -->
-        <div class="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
-            <div class="flex items-center justify-between">
-              <h3 class="text-sm font-medium text-blue-800">Total Profiles</h3>
-              <span class="text-2xl font-bold text-blue-600">{{ filteredProfiles.length }}</span>
-            </div>
-          </div>
-        
-        </div>
+    
+   <div class="bg-white shadow-lg rounded-xl p-8 mb-8 border border-gray-200 max-w-7xl mx-auto">
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-8">
+  
+    <div class="flex items-center gap-6 max-w-md bg-gray-200 p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300">
+      <div class="p-4 bg-blue-100 rounded-full flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+        </svg>
       </div>
+      <div>
+        <h1 class="text-3xl font-semibold text-gray-900 mb-1 leading-tight">Encode Profiles</h1>
+        
+      </div>
+    </div>
+
+  
+    <div class="flex flex-col sm:flex-row gap-4 w-full sm:w-auto items-stretch sm:items-center">
+      <div class="relative flex-1">
+        <input
+          v-model="searchQuery"
+          type="text"
+          placeholder="Search profiles..."
+          class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+        />
+        <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+      </div>
+      <button
+        @click="refreshData"
+        class="flex items-center gap-2 px-5 py-3 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 transition"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+        Refresh
+      </button>
+    </div>
+  </div>
+
+  <div class="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-6">
+    <div class="bg-gray-200 p-6 rounded-lg border border-blue-100 shadow-sm flex flex-col justify-between">
+      <h3 class="text-sm font-medium text-gray-800 mb-2">Total Profiles</h3>
+      <span class="text-3xl font-bold text-gray-800">{{ filteredProfiles.length }}</span>
+    </div>
+   
+  </div>
+</div>
+
 
       
       <div v-if="loading" class="bg-white shadow rounded-xl p-6">
@@ -213,19 +213,47 @@ import axios from 'axios'
 import { useToast } from 'vue-toastification'
 import DefaultLayout from '../../layout/DefaultLayout.vue'
 import EditIcon from '../../components/icons/EditIcon.vue'
+import Cookies from 'js-cookie'
+import { useRouter } from 'vue-router'
 
-const apiUrl = 'http://localhost:8084'
-const profiles = ref<any[]>([])
-const users = ref<any[]>([])
-const loading = ref(true)
+const router = useRouter()
 const toast = useToast()
+const apiUrl = 'http://localhost:8084'
+
+// State
+interface Profile {
+  id: string
+  name: string
+  user?: {
+    id?: string
+    name?: string
+    email?: string
+    unique_id?: string
+  }
+  updated_at?: string
+  created_at?: string
+}
+
+interface User {
+  id: string
+  name: string
+  email: string
+  unique_id: string
+}
+
+const profiles = ref<Profile[]>([])
+const users = ref<User[]>([])
+const loading = ref(true)
 const searchQuery = ref('')
 const itemsPerPage = 10
 
 // Modal State
 const editModal = ref(false)
 const selectedProfileId = ref<string | null>(null)
-const editForm = ref({ name: '', user_id: '' })
+const editForm = ref({
+  name: '',
+  user_id: ''
+})
 
 // Pagination
 const pagination = ref({
@@ -235,33 +263,32 @@ const pagination = ref({
   end: 1
 })
 
-
+// Computed properties
 const filteredProfiles = computed(() => {
   if (!searchQuery.value) return profiles.value
   
   const query = searchQuery.value.toLowerCase()
   return profiles.value.filter(profile => 
     profile.name.toLowerCase().includes(query) ||
-    (profile.user?.name?.toLowerCase().includes(query) || false) ||
-    (profile.user?.email?.toLowerCase().includes(query) || false) ||
+    profile.user?.name?.toLowerCase()?.includes(query) ||
+    profile.user?.email?.toLowerCase()?.includes(query) ||
     profile.id.toLowerCase().includes(query)
   )
 })
 
 const uniqueUsersCount = computed(() => {
   const userIds = new Set(profiles.value.map(p => p.user?.id).filter(Boolean))
-  console.log(userIds)
   return userIds.size
 })
 
 const lastUpdated = computed(() => {
-  if (profiles.value.length === 0) return 'Never'
+  if (!profiles.value.length) return 'Never'
   
   const dates = profiles.value
-    .map(p => new Date(p.updated_at || p.created_at))
+    .map(p => new Date(p.updated_at || p.created_at || 0))
     .filter(d => !isNaN(d.getTime()))
     
-  if (dates.length === 0) return 'Unknown'
+  if (!dates.length) return 'Unknown'
   
   const latestDate = new Date(Math.max(...dates.map(d => d.getTime())))
   return latestDate.toLocaleDateString()
@@ -270,7 +297,7 @@ const lastUpdated = computed(() => {
 const visiblePages = computed(() => {
   const total = Math.ceil(filteredProfiles.value.length / itemsPerPage)
   const current = pagination.value.currentPage
-  const range = 2 
+  const range = 2
   
   let start = Math.max(1, current - range)
   let end = Math.min(total, current + range)
@@ -282,29 +309,49 @@ const visiblePages = computed(() => {
     start = Math.max(1, total - 2 * range)
   }
   
-  const pages = []
-  for (let i = start; i <= end; i++) {
-    pages.push(i)
-  }
-  
-  return pages
+  return Array.from({ length: end - start + 1 }, (_, i) => start + i)
 })
 
-
-const formatDate = (dateString: string) => {
-  if (!dateString) return ''
-  const date = new Date(dateString)
-  return date.toLocaleDateString()
+// Helper functions
+const getAuthHeaders = () => {
+  const accessToken = Cookies.get('access_token')
+  if (!accessToken) {
+    toast.error('Session expired. Please login again.')
+    router.push('/login')
+    throw new Error('No access token')
+  }
+  return {
+    Authorization: `Bearer ${accessToken}`,
+    'Content-Type': 'application/json'
+  }
 }
 
+const handleApiError = (error: unknown, defaultMessage: string) => {
+  const errorMsg = (error as any)?.response?.data?.detail || (error as Error)?.message
+  toast.error(`${defaultMessage}: ${errorMsg}`)
+  console.error(error)
+  
+  if ((error as any)?.response?.status === 401) {
+    router.push('/login')
+  }
+}
+
+const formatDate = (dateString?: string) => {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  return isNaN(date.getTime()) ? '' : date.toLocaleDateString()
+}
+
+// API functions
 const fetchProfiles = async () => {
   loading.value = true
   try {
-    const res = await axios.get(`${apiUrl}/encodeprofile`)
+    const headers = getAuthHeaders()
+    const res = await axios.get(`${apiUrl}/encodeprofile`, { headers })
     profiles.value = Array.isArray(res.data) ? res.data : [res.data]
     updatePagination()
-  } catch (error: any) {
-    toast.error('Failed to fetch profiles: ' + (error.response?.data?.detail || error.message))
+  } catch (error) {
+    handleApiError(error, 'Failed to fetch profiles')
     profiles.value = []
   } finally {
     loading.value = false
@@ -313,10 +360,11 @@ const fetchProfiles = async () => {
 
 const fetchUsers = async () => {
   try {
-    const res = await axios.get(`${apiUrl}/users`) 
+    const headers = getAuthHeaders()
+    const res = await axios.get(`${apiUrl}/users`, { headers })
     users.value = Array.isArray(res.data) ? res.data : [res.data]
   } catch (error) {
-    console.error('Failed to fetch users', error)
+    handleApiError(error, 'Failed to fetch users')
   }
 }
 
@@ -325,18 +373,21 @@ const refreshData = () => {
   fetchUsers()
 }
 
-const openEditModal = (profile: any) => {
+// Profile management
+const openEditModal = (profile: Profile) => {
   selectedProfileId.value = profile.id
-  editForm.value.name = profile.name
-  editForm.value.user_id = profile.user?.unique_id || ''
+  editForm.value = {
+    name: profile.name,
+    user_id: profile.user?.unique_id || ''
+  }
   editModal.value = true
 }
-
 
 const updateProfile = async () => {
   if (!selectedProfileId.value) return
 
   try {
+    const headers = getAuthHeaders()
     await axios.put(
       `${apiUrl}/encodeprofile/update`,
       {
@@ -345,27 +396,27 @@ const updateProfile = async () => {
       },
       {
         params: { id: selectedProfileId.value },
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers
       }
     )
 
     toast.success('Profile updated successfully')
     editModal.value = false
     await fetchProfiles()
-  } catch (error: any) {
-    toast.error('Update failed: ' + (error.response?.data?.detail || error.message))
+  } catch (error) {
+    handleApiError(error, 'Update failed')
   }
 }
 
-
-
+// Pagination functions
 const updatePagination = () => {
   const totalItems = filteredProfiles.value.length
-  pagination.value.totalPages = Math.ceil(totalItems / itemsPerPage)
-  pagination.value.start = (pagination.value.currentPage - 1) * itemsPerPage + 1
-  pagination.value.end = Math.min(pagination.value.currentPage * itemsPerPage, totalItems)
+  pagination.value = {
+    totalPages: Math.ceil(totalItems / itemsPerPage),
+    start: (pagination.value.currentPage - 1) * itemsPerPage + 1,
+    end: Math.min(pagination.value.currentPage * itemsPerPage, totalItems),
+    currentPage: Math.min(pagination.value.currentPage, Math.ceil(totalItems / itemsPerPage))
+  }
 }
 
 const goToPage = (page: number) => {
@@ -374,21 +425,10 @@ const goToPage = (page: number) => {
   updatePagination()
 }
 
-const nextPage = () => {
-  if (pagination.value.currentPage < pagination.value.totalPages) {
-    pagination.value.currentPage++
-    updatePagination()
-  }
-}
+const nextPage = () => goToPage(pagination.value.currentPage + 1)
+const prevPage = () => goToPage(pagination.value.currentPage - 1)
 
-const prevPage = () => {
-  if (pagination.value.currentPage > 1) {
-    pagination.value.currentPage--
-    updatePagination()
-  }
-}
-
-
+// Lifecycle hooks
 onMounted(() => {
   refreshData()
 })

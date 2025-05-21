@@ -13,11 +13,11 @@ export default {
   props: {
     title: {
       type: String,
-      default: 'Admin Dashboard'
+      default: ' Dashboard'
     },
     subtitle: {
       type: String,
-      default: 'Welcome back! Here\'s what\'s happening today.'
+      default: ''
     },
     showLiveBadge: {
       type: Boolean,

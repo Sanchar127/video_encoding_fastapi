@@ -30,7 +30,7 @@ def get_db():
 
         
 def get_redis():
-    return redis_client  
+    return redis_client  3
 
 
 def get_current_user(
@@ -78,7 +78,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     valid_access_token = None
     for token in existing_tokens:
         token_str = token.decode() if isinstance(token, bytes) else token
-        # Check if token is blacklisted before assigning it as valid
+        
         if redis_client.exists(f"blacklisted:{token_str}"):
             continue  # Skip blacklisted tokens
         if redis_client.exists(f"token:{token_str}"):

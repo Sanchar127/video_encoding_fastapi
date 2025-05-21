@@ -64,7 +64,6 @@ export default {
     router.push('/admin/dashboard');
   }
 
-
 interface DecodedToken {
   sub: string;
   role: string;
@@ -82,22 +81,25 @@ const handleSubmit = async () => {
     });
 
     const token = response.data.access_token;
-    Cookies.set('access_token', token);
 
-    // Decode role from token
+    // ✅ Set token with correct path so all routes can access it
+    Cookies.set('access_token', token, { path: '/' });
+
+    // ✅ Decode token and redirect accordingly
     const decoded: DecodedToken = jwtDecode(token);
     const role = decoded.role;
 
     toast.success('Login successful!');
 
-    // Redirect based on role
+    // ✅ Redirect based on role
     if (role === 'super_admin') {
-      router.push('/superadmin/dashboard');
+      await router.push('/superadmin/dashboard');
     } else if (role === 'admin') {
-      router.push('/admin/dashboard');
+      await router.push('/admin/dashboard');
     } else {
-      router.push('/user/dashboard'); // or another default route
+      await router.push('/jobList'); // Replace with actual regular user dashboard
     }
+
   } catch (error: any) {
     toast.error('Login failed: ' + (error.response?.data?.detail || error.message));
   }

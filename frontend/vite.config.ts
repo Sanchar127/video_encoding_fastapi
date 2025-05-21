@@ -8,14 +8,17 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './src'),
     },
-    extensions: ['.ts', '.js', '.vue'], // Ensure TypeScript files are resolved
+    extensions: ['.ts', '.js', '.vue'],
   },
-  
   server: {
     host: '0.0.0.0',
     port: 5173,
     watch: {
       usePolling: true,
+    },
+    hmr: {
+      host: 'localhost',     
+      clientPort: 5175,     
     },
   },
 });

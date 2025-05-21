@@ -4,7 +4,7 @@
       
       <!-- Logo -->
       <div class="flex items-center space-x-2">
-        <span class="text-2xl font-bold">VideoEncoder</span>
+        <span class="text-2xl font-bold">FastEncoder</span>
       </div>
 
       <!-- Hamburger (Mobile) -->
@@ -28,7 +28,7 @@
         </svg>
       </button>
 
-      <!-- Search (Hidden on small, centered on large) -->
+
       <div class="hidden lg:block absolute left-1/2 transform -translate-x-1/2 w-full max-w-md">
         <div class="relative">
           <SearchIcons class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
@@ -101,6 +101,7 @@
 import SearchIcons from './icons/SearchIcons.vue';
 import Cookies from 'js-cookie';
 import axios from 'axios';
+import { useToast } from 'vue-toastification'
 const apiurl='http://localhost:8084'
 export default {
   name: 'Navbar',
@@ -128,15 +129,15 @@ methods: {
         {},
         {
           headers: {
-            Authorization: `Bearer ${accessToken}`, // ✅ Send token in Authorization header
+            Authorization: `Bearer ${accessToken}`, 
           },
-          withCredentials: true, // ✅ Still needed if your backend clears cookies
+          withCredentials: true, 
         }
       );
 
-      // Update frontend state
       this.isAuthenticated = false;
-      // this.$router.push('/');
+      this.$router.push('/');
+      toast.success('Logout successful!');
     } catch (error) {
       console.error('Logout failed:', error);
     }

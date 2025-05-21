@@ -1,6 +1,6 @@
 <template>
   <DefaultLayout>
-    <div class="min-h-screen flex items-center justify-center p-6 ">
+    <div class="min-h-screen flex items-center justify-center p-20 ">
       <div class="bg-white shadow-2xl rounded-3xl p-10 w-full max-w-6xl">
         <h2 class="text-3xl font-bold mb-10 text-center text-gray-800">
           Create Encode Profile Details
@@ -71,15 +71,19 @@
 </template>
 
 
-
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
+import { useToast } from 'vue-toastification'
+import Cookies from 'js-cookie'
 import DefaultLayout from '@/layout/DefaultLayout.vue'
+
+const apiUrl = 'http://localhost:8084'
 
 const encodeProfileName = ref('')
 const selectedProfile = ref('')
-const users = ref([])
+const users = ref<any[]>([])
+const toast = useToast()
 
 const form = ref({
   width: '',
@@ -100,7 +104,7 @@ const form = ref({
   force_format: 'mp4'
 })
 
-const fields = {
+const fields: Record<string, string> = {
   width: 'Width',
   height: 'Height',
   video_bitrate: 'Video Bitrate',
@@ -119,7 +123,7 @@ const fields = {
   force_format: 'Force Format'
 }
 
-const inputTypes = {
+const inputTypes: Record<string, string> = {
   width: 'number',
   height: 'number',
   video_bitrate: 'number',
@@ -132,6 +136,12 @@ const inputTypes = {
 }
 
 const handleSubmit = async () => {
+  const accessToken = Cookies.get('access_token')
+  if (!accessToken) {
+    toast.error('No access token found. Please login again.')
+    return
+  }
+
   try {
     const payload = {
       name: encodeProfileName.value,
@@ -139,31 +149,41 @@ const handleSubmit = async () => {
       ...form.value
     }
 
-    const response = await axios.post('http://localhost:8084/encode-profile-details', payload, {
+    const response = await axios.post(`${apiUrl}/encode-profile-details`, payload, {
       headers: {
+        'Authorization': `Bearer ${accessToken}`,
         'Content-Type': 'application/json'
       }
     })
 
+    toast.success('Profile Details successfully created!')
     console.log('Profile details created:', response.data)
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to create profile details:', error)
+    toast.error('Failed to create profile details: ' + (error.response?.data?.detail || error.message))
   }
 }
 
 const fetchUsers = async () => {
+  const accessToken = Cookies.get('access_token')
+  if (!accessToken) {
+    toast.error('No access token found. Please login again.')
+    return
+  }
+
   try {
-    const response = await axios.get('http://localhost:8084/encodeprofile', {
+    const response = await axios.get(`${apiUrl}/encodeprofile`, {
       headers: {
+        'Authorization': `Bearer ${accessToken}`,
         'Content-Type': 'application/json'
       }
     })
     users.value = response.data
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to fetch encode profiles:', error)
+    toast.error('Failed to fetch encode profiles: ' + (error.response?.data?.detail || error.message))
   }
 }
-
 
 onMounted(fetchUsers)
 </script>

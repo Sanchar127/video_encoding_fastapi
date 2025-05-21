@@ -43,59 +43,73 @@
     </DefaultLayout>
   </template>
   
-  <script setup>
+<script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
+import Cookies from 'js-cookie'
+import { useToast } from 'vue-toastification'
 import DefaultLayout from '@/layout/DefaultLayout.vue'
 
+const apiUrl = 'http://localhost:8084'
 const encodeProfileName = ref('')
 const username = ref('')
-const users = ref([])
+const users = ref<any[]>([])
+const toast = useToast()
 
-const handleSubmit = async () => {
-  const selectedUser = users.value.find(user => user.username === username.value)
-  if (!selectedUser) {
-      console.error('No valid user selected')
-      return
-    }
-  else{
-    console.log('found selected user')
-}
-
-console.log(selectedUser.unique_id)
-  const payload = {
-    
-    name: encodeProfileName.value,
-    user_id: selectedUser.unique_id
-  }  
-console.log(payload)
-  try {
-   
-    const response = await axios.post('http://localhost:8084/encode-profile', payload, {
-  headers: {
-    'Content-Type': 'application/json'
-  }
-})
-
-    console.log('Profile created successfully:', response.data)
-  } catch (error) {
-    console.error('Failed to create encode profile:', error)
-  }
-}
-
-
+// Fetch users on mount
 const fetchUsers = async () => {
-  try {
-  
-    const response = await axios.get('http://localhost:8084/users', {
-      headers: {
-        'Content-Type': 'application/json'
+  const accessToken = Cookies.get('access_token')
+  if (!accessToken) {
+    toast.error('No access token found. Please log in again.')
+    return
+  }
 
+  try {
+    const response = await axios.get(`${apiUrl}/users`, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
       }
     })
     users.value = response.data
-  } catch (error) {
-    console.error('Failed to fetch users:', error)
+  } catch (error: any) {
+    toast.error('Failed to fetch users: ' + (error.response?.data?.detail || error.message))
+    console.error(error)
+  }
+}
+
+// Handle encode profile submission
+const handleSubmit = async () => {
+  const selectedUser = users.value.find(user => user.username === username.value)
+
+  if (!selectedUser) {
+    toast.error('No valid user selected.')
+    return
+  }
+
+  const payload = {
+    name: encodeProfileName.value,
+    user_id: selectedUser.unique_id,
+  }
+
+  const accessToken = Cookies.get('access_token')
+  if (!accessToken) {
+    toast.error('No access token found. Please log in again.')
+    return
+  }
+
+  try {
+    const response = await axios.post(`${apiUrl}/encode-profile`, payload, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      }
+    })
+    toast.success('Encode Profile Created Successfully')
+    console.log('Profile created:', response.data)
+  } catch (error: any) {
+    toast.error('Failed to create encode profile: ' + (error.response?.data?.detail || error.message))
+    console.error(error)
   }
 }
 
@@ -103,9 +117,3 @@ onMounted(() => {
   fetchUsers()
 })
 </script>
-
-  
-  <style scoped>
-  
-  </style>
-  

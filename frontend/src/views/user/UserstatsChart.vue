@@ -1,0 +1,53 @@
+<template>
+  <div>Hey this bar
+    <Bar :chart-data="chartData" :chart-options="chartOptions" />
+  </div>
+</template>
+
+<script setup lang="ts">
+import { computed, watch } from 'vue'
+import { Bar } from 'vue-chartjs'
+import {
+  Chart as ChartJS,
+  Title,
+  Tooltip,
+  Legend,
+  BarElement,
+  CategoryScale,
+  LinearScale,
+} from 'chart.js'
+
+ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale)
+
+interface Props {
+  total: number
+  active: number
+  blacklisted: number
+  tokens: number
+}
+const props = defineProps<Props>()
+
+const chartData = computed(() => ({
+  labels: ['Total Users', 'Active Users', 'Blacklisted Users', 'Stored Tokens'],
+  datasets: [
+    {
+      label: 'Count',
+      data: [props.total, props.active, props.blacklisted, props.tokens],
+      // backgroundColor and borderColor can be omitted so Chart.js picks defaults
+      borderWidth: 1,
+    },
+  ],
+}))
+
+const chartOptions = {
+  responsive: true,
+  scales: {
+    y: { beginAtZero: true },
+  },
+}
+
+// If you need to reactively update when props change:
+watch(props, () => {
+  // chartData is a computed so it will update automatically
+})
+</script>
