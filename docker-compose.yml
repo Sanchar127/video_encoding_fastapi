@@ -1,5 +1,30 @@
 
 services:
+ 
+
+  frontend:
+    env_file: .env
+    container_name: ${CONTAINER_NAME_PREFIX}_frontend 
+    image: ${CONTAINER_NAME_PREFIX}_frontend
+    restart: unless-stopped
+    
+    build:
+      context: .
+      dockerfile: ./compose/frontend/Dockerfile
+    ports:
+    - "5175:5173"  
+    environment:
+      - NODE_ENV=development
+      - NODE_OPTIONS=--openssl-legacy-provider
+    volumes:
+    - ./frontend:/app 
+    - /app/node_modules 
+
+    networks:
+      - fastapi_encoder
+
+
+
   web:
     env_file: .env
     container_name: ${CONTAINER_NAME_PREFIX}_web
@@ -11,10 +36,10 @@ services:
       args:
         PROJECT_PATH: ${PROJECT_PATH}
         PYTHON_VERSION: ${PYTHON_VERSION}
-    # this volume is used to map the files and folders on the host to the container so if we change code on the host, code in the docker container will also be changed
+    
     volumes:
-      - ./backend:${PROJECT_PATH}
-    # '/start' is the shell script used to run the service
+      - ./app:${PROJECT_PATH}
+    
     command: /start
     environment:
       APP_PORT: ${APP_PORT}
@@ -63,23 +88,6 @@ services:
     networks:
       - fastapi_encoder
 
-  frontend:
-    env_file: .env
-    container_name: ${CONTAINER_NAME_PREFIX}_frontend 
-    image: ${CONTAINER_NAME_PREFIX}_frontend
-    restart: unless-stopped
-    
-    build:
-      context: .
-      dockerfile: ./compose/frontend/Dockerfile
-    ports:
-    - "5175:5173"  
-    volumes:
-    - ./frontend:/app 
-    - /app/node_modules 
-
-    networks:
-      - fastapi_encoder
 
 
 
@@ -114,99 +122,99 @@ services:
     command: dragonfly --admin_nopass --cache_mode --proactor_threads=2
     restart: unless-stopped
     ports:
-      - "63799:6379"
+        - "16379:6379"
     networks:
       - fastapi_encoder
 
-  celery_worker:
-    env_file: .env
-    container_name: ${CONTAINER_NAME_PREFIX}_celery_worker
-    build:
-      context: .
-      dockerfile: ./compose/fastapi/Dockerfile
-    restart: unless-stopped
-    image: ${CONTAINER_NAME_PREFIX}_celery_worker
-    command: /start-celeryworker
-    volumes:
-      - ./backend:${PROJECT_PATH}
-    depends_on:
-      - web
-      - rabbitmq
-      - dragonfly
-      - mysqldb
-    networks:
-      - fastapi_encoder
+  # celery_worker:
+  #   env_file: .env
+  #   container_name: ${CONTAINER_NAME_PREFIX}_celery_worker
+  #   build:
+  #     context: .
+  #     dockerfile: ./compose/fastapi/Dockerfile
+  #   restart: unless-stopped
+  #   image: ${CONTAINER_NAME_PREFIX}_celery_worker
+  #   command: /start-celeryworker
+  #   volumes:
+  #     - ./app:${PROJECT_PATH}
+  #   depends_on:
+  #     - web
+  #     - rabbitmq
+  #     - dragonfly
+  #     - mysqldb
+  #   networks:
+  #     - fastapi_encoder
 
-  celery_beat:
-    env_file: .env
-    container_name: ${CONTAINER_NAME_PREFIX}_celery_beat
-    build:
-      context: .
-      dockerfile: ./compose/fastapi/Dockerfile
-    restart: unless-stopped
-    image: ${CONTAINER_NAME_PREFIX}_celery_beat
-    command: /start-celerybeat
-    volumes:
-      - ./backend:${PROJECT_PATH}
-    depends_on:
-      - web
-      - rabbitmq
-      - celery_worker
-      - dragonfly
-      - mysqldb
-    networks:
-      - fastapi_encoder
+  # celery_beat:
+  #   env_file: .env
+  #   container_name: ${CONTAINER_NAME_PREFIX}_celery_beat
+  #   build:
+  #     context: .
+  #     dockerfile: ./compose/fastapi/Dockerfile
+  #   restart: unless-stopped
+  #   image: ${CONTAINER_NAME_PREFIX}_celery_beat
+  #   command: /start-celerybeat
+  #   volumes:
+  #     - ./app:${PROJECT_PATH}
+  #   depends_on:
+  #     - web
+  #     - rabbitmq
+  #     - celery_worker
+  #     - dragonfly
+  #     - mysqldb
+  #   networks:
+  #     - fastapi_encoder
 
-  flower:
-    env_file: .env
-    container_name: ${CONTAINER_NAME_PREFIX}_flower
-    build:
-      context: .
-      dockerfile: ./compose/fastapi/Dockerfile
-    restart: unless-stopped
-    image: ${CONTAINER_NAME_PREFIX}_celery_flower
-    command: /start-flower
-    volumes:
-      - ./backend:${PROJECT_PATH}
-    ports:
-      - "5558:5555"
-    depends_on:
-      - celery_worker
-      - web
-      - rabbitmq
-      - dragonfly
-      - mysqldb
-    networks:
-      - fastapi_encoder
+  # flower:
+  #   env_file: .env
+  #   container_name: ${CONTAINER_NAME_PREFIX}_flower
+  #   build:
+  #     context: .
+  #     dockerfile: ./compose/fastapi/Dockerfile
+  #   restart: unless-stopped
+  #   image: ${CONTAINER_NAME_PREFIX}_celery_flower
+  #   command: /start-flower
+  #   volumes:
+  #     - ./app:${PROJECT_PATH}
+  #   ports:
+  #     - "5558:5555"
+  #   depends_on:
+  #     - celery_worker
+  #     - web
+  #     - rabbitmq
+  #     - dragonfly
+  #     - mysqldb
+  #   networks:
+  #     - fastapi_encoder
           
-  minio:
-    image: minio/minio
-    container_name: ${CONTAINER_NAME_PREFIX}_minio
-    restart: unless-stopped
-    command: server /data/minio --console-address ":9001"
-    ports:
-      - target: 9000
-        published: ${MINIO_API_PORT:-9000}
-        protocol: tcp
-        mode: host
-      - target: 9001
-        published: ${MINIO_CONSOLE_PORT:-9001}
-        protocol: tcp
-        mode: host
-    volumes:
-      - type: volume
-        source: minio-store
-        target: /data
-        volume:
-          nocopy: true
-    environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
-      MINIO_REGION_NAME: ${MINIO_REGION_NAME}
-      MINIO_DOMAIN: ${MINIO_DOMAIN}
-      MINIO_SERVER_URL: ${MINIO_SERVER_URL}
-    networks:
-      - fastapi_encoder
+  # minio:
+  #   image: minio/minio
+  #   container_name: ${CONTAINER_NAME_PREFIX}_minio
+  #   restart: unless-stopped
+  #   command: server /data/minio --console-address ":9001"
+  #   ports:
+  #     - target: 9000
+  #       published: ${MINIO_API_PORT:-9000}
+  #       protocol: tcp
+  #       mode: host
+  #     - target: 9001
+  #       published: ${MINIO_CONSOLE_PORT:-9001}
+  #       protocol: tcp
+  #       mode: host
+  #   volumes:
+  #     - type: volume
+  #       source: minio-store
+  #       target: /data
+  #       volume:
+  #         nocopy: true
+  #   environment:
+  #     MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+  #     MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+  #     MINIO_REGION_NAME: ${MINIO_REGION_NAME}
+  #     MINIO_DOMAIN: ${MINIO_DOMAIN}
+  #     MINIO_SERVER_URL: ${MINIO_SERVER_URL}
+  #   networks:
+  #     - fastapi_encoder
     
   # test:
   #   env_file: .env
@@ -218,7 +226,7 @@ services:
   #     dockerfile: ./compose/fastapi/Dockerfile
   #   command: pytest --maxfail=1 --disable-warnings -q
   #   volumes:
-  #     - ./backend:${PROJECT_PATH}
+  #     - ./app:${PROJECT_PATH}
   #   depends_on:
   #     - mysqldb
   #     - dragonfly
@@ -245,6 +253,7 @@ services:
       - ./compose/nginx/templates/custom.conf.template:/etc/nginx/conf.d/templates/custom.conf.template
       - ./logs/nginx/log:/var/log/nginx
       - ./data/certs:/etc/nginx/certs
+      
     working_dir:
       ${PROJECT_PATH}
     command: sh -c "envsubst \"`env | awk -F = '{printf \" \\\\$%s\", $1}'`\" < /etc/nginx/conf.d/templates/custom.conf.template > /etc/nginx/conf.d/default.conf && exec nginx -g 'daemon off;'"
@@ -252,7 +261,7 @@ services:
       - web
     networks:
       - fastapi_encoder
-#Docker Networks
+
 networks:
   fastapi_encoder:
     driver: bridge

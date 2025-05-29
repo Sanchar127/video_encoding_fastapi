@@ -4,16 +4,13 @@ import { jwtDecode } from 'jwt-decode';
 
 import { useToast } from 'vue-toastification';
 
-// Views
+
 import LoginPage from '@/views/LoginPage.vue';
 import EncodeProfilesPage from '@/views/EncodeProfilesPage.vue';
-import EditUser from '@/views/user/EditUser.vue';
 import NewUser from '@/views/user/new.vue';
 import ManageUser from '@/views/user/manage.vue';
-import EditProfiles from '@/views/encodeProfile/editProfiles.vue';
 import ManageProfile from '@/views/encodeProfile/manageProfile.vue';
 import NewDetails from '@/views/epDeatails/newDetails.vue';
-import EditDetails from '@/views/epDeatails/EditDetails.vue';
 import ManageDetails from '@/views/epDeatails/manageDetails.vue';
 import JobList from '@/views/job/JobList.vue';
 import AdminDashboard from '@/views/AdminDashBoardPage.vue';
@@ -34,11 +31,8 @@ const routes: RouteRecordRaw[] = [
   { path: '/user/new', name: 'Create New User', component: NewUser, meta: { requiresAuth: true } },
   { path: '/user/manage', name: 'Manage User', component: ManageUser, meta: { requiresAuth: true } },
   { path: '/encodeProfiles', name: 'Encode Profiles', component: EncodeProfilesPage, meta: { requiresAuth: true } },
-  { path: '/editUser', name: 'Edit User', component: EditUser, meta: { requiresAuth: true } },
-  { path: '/edit/profile', name: 'Edit Profile', component: EditProfiles, meta: { requiresAuth: true } },
   { path: '/profile/manage', name: 'Manage Profile', component: ManageProfile, meta: { requiresAuth: true } },
   { path: '/new/EncodeProfileDetails', name: 'New Encode Profile Details', component: NewDetails, meta: { requiresAuth: true } },
-  { path: '/edit/EncodeProfilesDetails', name: 'Edit Encode Profile Details', component: EditDetails, meta: { requiresAuth: true } },
   { path: '/ProfileDetails/manage', name: 'Manage Profile Details', component: ManageDetails, meta: { requiresAuth: true } },
   { path: '/jobList', name: 'Job List', component: JobList, meta: { requiresAuth: true } },
   { path: '/admin/dashboard', name: 'Admin Dashboard', component: AdminDashboard, meta: { requiresAuth: true } },
@@ -77,7 +71,7 @@ router.beforeEach((to, from, next) => {
         return next();
       }
     } else {
-      return next(); // no token, proceed to login
+      return next()
     }
   }
 

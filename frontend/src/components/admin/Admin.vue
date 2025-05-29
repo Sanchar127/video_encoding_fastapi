@@ -1,7 +1,6 @@
 <template>
   <div class="min-h-screen p-4 md:p-8">
-    <DashboardHeader />
-    
+    <HeroHeader title="DashBoard"/>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       <StatsCard 
         title="Total Users" 
@@ -17,7 +16,7 @@
         </template>
       </StatsCard>
 
-       <StatsCard 
+      <StatsCard 
         title="Active Users" 
         :value="stats.activeUsers" 
         link="/user/manage"
@@ -45,7 +44,6 @@
         </template>
       </StatsCard>
 
-      <!-- Job Stats -->
       <StatsCard 
         title="Total Jobs" 
         :value="stats.totalJobs" 
@@ -116,7 +114,6 @@
         </template>
       </StatsCard>
 
-      <!-- Encoding Stats -->
       <StatsCard 
         title="Encoding Profiles" 
         :value="stats.totalEncodingProfiles" 
@@ -146,19 +143,7 @@
         </template>
       </StatsCard>
 
-      <StatsCard 
-        title="Avg Job Duration" 
-        :value="`${stats.averageJobDuration}s`" 
-        link="/jobList"
-        icon-bg-color="bg-cyan-50"
-        icon-color="text-cyan-600"
-      >
-        <template #icon>
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        </template>
-      </StatsCard>
+     
 
       <StatsCard 
         title="Success Rate" 
@@ -195,7 +180,7 @@
       </div>
     </div>
     
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 mt-8 mb-8">
         <h2 class="text-xl font-semibold text-gray-800 mb-6">Quick Actions</h2>
         <div class="space-y-4">
@@ -265,19 +250,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 import { useToast } from 'vue-toastification'
 import Cookies from 'js-cookie'
 import Chart from 'chart.js/auto'
 
-// Components
-import DashboardHeader from '../DashboardHeader.vue'
+
+import DashboardHeader from '../HeroHeader.vue'
 import StatsCard from './StatsCard.vue'
 import QuickActionButton from './QuickActionButton.vue'
+import HeroHeader from '../HeroHeader.vue'
 
-// Types
+
 interface Job {
   status: string
   endTime?: string
@@ -330,8 +316,11 @@ const loading = ref(false)
 const error = ref<string | null>(null)
 const userChart = ref<Chart | null>(null)
 const jobChart = ref<Chart | null>(null)
+const isRenderingUserChart = ref(false)
+const isRenderingJobChart = ref(false)
+const renderTimeout = ref<NodeJS.Timeout | null>(null)
 
-// Methods
+
 const getAuthHeaders = () => {
   const accessToken = Cookies.get('access_token')
   if (!accessToken) {
@@ -388,123 +377,266 @@ const calculateJobMetrics = (jobs: Job[]) => {
   }
 }
 
-const renderUserChart = () => {
-  if (userChart.value) {
-    userChart.value.destroy()
+const destroyChart = (chart: Chart | null, canvasId: string) => {
+  console.log(`Destroying chart for ${canvasId}`)
+  if (chart) {
+    try {
+      chart.destroy()
+      console.log(`Chart for ${canvasId} destroyed successfully`)
+    } catch (err) {
+      console.warn(`Error destroying chart for ${canvasId}:`, err)
+    }
   }
   
-  const ctx = document.getElementById('userChart') as HTMLCanvasElement
-  if (!ctx) return
-  
-  const context = ctx.getContext('2d')
-  if (!context) return
-  
-  userChart.value = new Chart(context, {
-    type: 'bar',
-    data: {
-      labels: ['Total Users', 'Active Users', 'Blacklisted Users'],
-      datasets: [{
-        label: 'User Count',
-        data: [
-          stats.value.totalUsers,
-          stats.value.activeUsers,
-          stats.value.blacklistedUsers
-        ],
-        backgroundColor: [
-          'rgba(59, 130, 246, 0.7)',
-          'rgba(16, 185, 129, 0.7)',
-          'rgba(239, 68, 68, 0.7)'
-        ],
-        borderColor: [
-          'rgba(59, 130, 246, 1)',
-          'rgba(16, 185, 129, 1)',
-          'rgba(239, 68, 68, 1)'
-        ],
-        borderWidth: 1
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        y: {
-          beginAtZero: true,
-          ticks: {
-            precision: 0
+  const canvas = document.getElementById(canvasId) as HTMLCanvasElement | null
+  if (canvas) {
+    const context = canvas.getContext('2d')
+    if (context) {
+      context.clearRect(0, 0, canvas.width, canvas.height)
+    }
+    // Reset canvas attributes and dimensions
+    canvas.width = canvas.width
+    canvas.height = canvas.height
+    canvas.removeAttribute('data-chart')
+    // Remove Chart.js internal references
+    if ((canvas as any).__chartjs) {
+      delete (canvas as any).__chartjs
+    }
+ 
+    canvas.style.display = 'none'
+    canvas.offsetHeight
+    canvas.style.display = ''
+   
+    if ((Chart as any).instances) {
+      Object.keys((Chart as any).instances).forEach((id) => {
+        const instance = (Chart as any).instances[id]
+        if (instance.canvas && instance.canvas.id === canvasId) {
+          try {
+            instance.destroy()
+            delete (Chart as any).instances[id]
+            console.log(`Removed Chart.js instance ${id} for ${canvasId} from registry`)
+          } catch (err) {
+            console.warn(`Error removing Chart.js instance ${id} for ${canvasId}:`, err)
           }
         }
-      },
-      plugins: {
-        legend: {
-          display: false
-        },
-        tooltip: {
-          callbacks: {
-            label: (context) => `${context.dataset.label}: ${context.raw}`
-          }
+      })
+    }
+  }
+  return null
+}
+
+const renderUserChart = async () => {
+  if (isRenderingUserChart.value) {
+    console.warn('User chart rendering skipped: already in progress')
+    return
+  }
+  isRenderingUserChart.value = true
+  console.log('Starting user chart render')
+
+  try {
+    // Destroy existing chart
+    userChart.value = destroyChart(userChart.value, 'userChart')
+
+    await nextTick() // Ensure DOM is ready
+
+    const canvas = document.getElementById('userChart') as HTMLCanvasElement | null
+    if (!canvas) {
+      console.error('User chart canvas not found')
+      error.value = 'User chart canvas not found'
+      return
+    }
+
+    const context = canvas.getContext('2d')
+    if (!context) {
+      console.error('Failed to get 2D context for user chart')
+      error.value = 'Failed to get 2D context for user chart'
+      return
+    }
+
+    // Check if canvas is already in use
+    if ((Chart as any).instances) {
+      const existingInstance = Object.values((Chart as any).instances).find(
+        (instance: any) => instance.canvas && instance.canvas.id === 'userChart'
+      )
+      if (existingInstance) {
+        console.warn('Existing Chart.js instance found for userChart, destroying it')
+        try {
+          existingInstance.destroy()
+        } catch (err) {
+          console.warn('Error destroying existing userChart instance:', err)
         }
       }
     }
-  })
-}
 
-const renderJobChart = () => {
-  if (jobChart.value) {
-    jobChart.value.destroy()
-  }
-  
-  const ctx = document.getElementById('jobChart') as HTMLCanvasElement
-  if (!ctx) return
-  
-  const context = ctx.getContext('2d')
-  if (!context) return
-  
-  jobChart.value = new Chart(context, {
-    type: 'doughnut',
-    data: {
-      labels: ['Completed', 'Failed', 'Queued', 'Processing'],
-      datasets: [{
-        data: [
-          stats.value.completedJobs,
-          stats.value.failedJobs,
-          stats.value.queuedJobs,
-          stats.value.processingJobs
-        ],
-        backgroundColor: [
-          'rgba(16, 185, 129, 0.7)',
-          'rgba(239, 68, 68, 0.7)',
-          'rgba(249, 115, 22, 0.7)',
-          'rgba(59, 130, 246, 0.7)'
-        ],
-        borderColor: [
-          'rgba(16, 185, 129, 1)',
-          'rgba(239, 68, 68, 1)',
-          'rgba(249, 115, 22, 1)',
-          'rgba(59, 130, 246, 1)'
-        ],
-        borderWidth: 1
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: 'bottom',
+    userChart.value = new Chart(context, {
+      type: 'bar',
+      data: {
+        labels: ['Total Users', 'Active Users', 'Blacklisted Users'],
+        datasets: [{
+          label: 'User Count',
+          data: [
+            stats.value.totalUsers,
+            stats.value.activeUsers,
+            stats.value.blacklistedUsers
+          ],
+          backgroundColor: [
+            'rgba(59, 130, 246, 0.7)',
+            'rgba(16, 185, 129, 0.7)',
+            'rgba(239, 68, 68, 0.7)'
+          ],
+          borderColor: [
+            'rgba(59, 130, 246, 1)',
+            'rgba(16, 185, 129, 1)',
+            'rgba(239, 68, 68, 1)'
+          ],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              precision: 0
+            }
+          }
         },
-        tooltip: {
-          callbacks: {
-            label: (context) => {
-              const label = context.label || ''
-              const value = context.raw as number || 0
-              const total = (context.dataset.data as number[]).reduce((a, b) => a + b, 0)
-              const percentage = Math.round((value / total) * 100)
-              return `${label}: ${value} (${percentage}%)`
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            callbacks: {
+              label: (context) => `${context.dataset.label}: ${context.raw}`
             }
           }
         }
       }
+    })
+    console.log('User chart rendered successfully')
+  } catch (err) {
+    console.error('Error creating user chart:', err)
+    error.value = 'Failed to render user chart'
+  } finally {
+    isRenderingUserChart.value = false
+    console.log('User chart rendering completed')
+  }
+}
+
+const renderJobChart = async () => {
+  if (isRenderingJobChart.value) {
+    console.warn('Job chart rendering skipped: already in progress')
+    return
+  }
+  isRenderingJobChart.value = true
+  console.log('Starting job chart render')
+
+  try {
+    // Destroy existing chart
+    jobChart.value = destroyChart(jobChart.value, 'jobChart')
+
+    await nextTick() // Ensure DOM is ready
+
+    const canvas = document.getElementById('jobChart') as HTMLCanvasElement | null
+    if (!canvas) {
+      console.error('Job chart canvas not found')
+      error.value = 'Job chart canvas not found'
+      return
     }
+
+    const context = canvas.getContext('2d')
+    if (!context) {
+      console.error('Failed to get 2D context for job chart')
+      error.value = 'Failed to get 2D context for job chart'
+      return
+    }
+
+    // Check if canvas is already in use
+    if ((Chart as any).instances) {
+      const existingInstance = Object.values((Chart as any).instances).find(
+        (instance: any) => instance.canvas && instance.canvas.id === 'jobChart'
+      )
+      if (existingInstance) {
+        console.warn('Existing Chart.js instance found for jobChart, destroying it')
+        try {
+          existingInstance.destroy()
+        } catch (err) {
+          console.warn('Error destroying existing jobChart instance:', err)
+        }
+      }
+    }
+
+    jobChart.value = new Chart(context, {
+      type: 'doughnut',
+      data: {
+        labels: ['Completed', 'Failed', 'Queued', 'Processing'],
+        datasets: [{
+          data: [
+            stats.value.completedJobs,
+            stats.value.failedJobs,
+            stats.value.queuedJobs,
+            stats.value.processingJobs
+          ],
+          backgroundColor: [
+            'rgba(16, 185, 129, 0.7)',
+            'rgba(239, 68, 68, 0.7)',
+            'rgba(249, 115, 22, 0.7)',
+            'rgba(59, 130, 246, 0.7)'
+          ],
+          borderColor: [
+            'rgba(16, 185, 129, 1)',
+            'rgba(239, 68, 68, 1)',
+            'rgba(249, 115, 22, 1)',
+            'rgba(59, 130, 246, 1)'
+          ],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom'
+          },
+          tooltip: {
+            callbacks: {
+              label: (context) => {
+                const label = context.label || ''
+                const value = context.raw as number || 0
+                const total = (context.dataset.data as number[]).reduce((a, b) => a + b, 0)
+                const percentage = total > 0 ? Math.round((value / total) * 100) : 0
+                return `${label}: ${value} (${percentage}%)`
+              }
+            }
+          }
+        }
+      }
+    })
+    console.log('Job chart rendered successfully')
+  } catch (err) {
+    console.error('Error creating job chart:', err)
+    error.value = 'Failed to render job chart'
+  } finally {
+    isRenderingJobChart.value = false
+    console.log('Job chart rendering completed')
+  }
+}
+
+const debounceRenderCharts = async () => {
+  if (renderTimeout.value) {
+    clearTimeout(renderTimeout.value)
+  }
+  return new Promise<void>((resolve) => {
+    renderTimeout.value = setTimeout(async () => {
+      console.log('Starting debounced chart rendering')
+      await renderUserChart()
+      await renderJobChart()
+      console.log('Debounced chart rendering completed')
+      resolve()
+    }, 100)
   })
 }
 
@@ -527,9 +659,10 @@ const viewReports = () => {
 
 // Lifecycle Hooks
 onMounted(async () => {
+  console.log('Component mounted, fetching data and rendering charts')
   try {
     loading.value = true
-    
+
     const [users, jobs, profiles, profileDetails, blacklistedUsers, tokens] = await Promise.all([
       fetchData<User[]>('users'),
       fetchData<Job[]>('job'),
@@ -553,23 +686,24 @@ onMounted(async () => {
       totalTokens: tokens.length
     }
 
-    renderUserChart()
-    renderJobChart()
-    
+    await nextTick() // Ensure DOM is ready
+    await debounceRenderCharts()
+
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Unknown error occurred'
     console.error('Error fetching dashboard data:', err)
   } finally {
     loading.value = false
+    console.log('Component mount completed')
   }
 })
 
 onBeforeUnmount(() => {
-  if (userChart.value) {
-    userChart.value.destroy()
+  console.log('Component unmounting, destroying charts')
+  if (renderTimeout.value) {
+    clearTimeout(renderTimeout.value)
   }
-  if (jobChart.value) {
-    jobChart.value.destroy()
-  }
+  userChart.value = destroyChart(userChart.value, 'userChart')
+  jobChart.value = destroyChart(jobChart.value, 'jobChart')
 })
 </script>

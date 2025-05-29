@@ -2,7 +2,7 @@
   <div class="flex flex-col min-h-screen">
     <Navbar />
 
-    <!-- Desktop layout -->
+  
     <div class="hidden md:flex flex-1 overflow-hidden">
       <aside class="w-64 p-4 bg-gray-50 overflow-y-auto border-r border-gray-200">
         <AdmindashItems />
@@ -15,6 +15,7 @@
 
     <!-- Mobile layout -->
     <div class="md:hidden flex-1 relative">
+      
       <!-- Hamburger Button -->
       <button
         @click="toggleSidebar"
@@ -33,7 +34,7 @@
         </svg>
       </button>
 
-      <!-- Sidebar Drawer -->
+      
       <div v-if="showSidebar" class="fixed inset-0 z-40 flex">
         <div class="w-64 bg-gray-50 border-r border-gray-200 p-4 h-full">
           <button
@@ -45,11 +46,11 @@
           <AdmindashItems />
           <SuperAdashitem v-if="isSuperAdmin" />
         </div>
-        <!-- Backdrop -->
+       
         <div class="flex-1 bg-black bg-opacity-40" @click="toggleSidebar"></div>
       </div>
 
-      <!-- Main Content -->
+   
       <main class="p-4">
         <slot />
       </main>

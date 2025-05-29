@@ -116,7 +116,7 @@ import { useToast } from 'vue-toastification'
 import Cookies from 'js-cookie';
 import { userSchema } from '../../validation/userFormSchema';
 
-// Fetch the access_token from cookies
+
 const accessToken = Cookies.get('access_token');
 
 const router = useRouter(); 

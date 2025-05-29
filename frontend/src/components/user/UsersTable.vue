@@ -142,13 +142,20 @@
 </template>
 
 <script setup lang="ts">
-import { UserIcon, EnvelopeIcon, PhoneIcon, LinkIcon, BellIcon, PencilSquareIcon } from '@heroicons/vue/24/outline'
+import {  EnvelopeIcon, PhoneIcon, LinkIcon, BellIcon, PencilSquareIcon } from '@heroicons/vue/24/outline'
+import UserIcon from '../icons/UserIcon.vue'
+import MobileIcon from '../icons/MobileIcon.vue'
 
-defineProps<{
-  users: any[]
-}>()
+
+defineProps({
+  users: {
+    type: Array,
+    required: true
+  }
+})
 
 const emit = defineEmits(['edit-user'])
+
 
 const truncateUrl = (url: string) => {
   if (!url) return ''

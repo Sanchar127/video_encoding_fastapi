@@ -4,7 +4,8 @@
      
       <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
         <div>
-          <h1 class="text-3xl font-bold text-gray-900">Encode Profiles Details</h1>
+          <HeroHeader title="Manage Encode Profile Details"/>
+          
           
         </div>
         
@@ -17,14 +18,13 @@
             Refresh
           </button>
           
-          <router-link to="/new/EncodeProfileDetails">
-            <button
-              class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            >
-              <PlusIcon class="-ml-1 mr-2 h-5 w-5" />
-              Add Profile
-            </button>
-          </router-link>
+             <button
+            @click="openAddModal"
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            <PlusIcon class="-ml-1 mr-2 h-5 w-5" />
+            Add Details
+          </button>
         </div>
       </div>
 
@@ -45,14 +45,14 @@
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <SearchIcon class="h-5 w-5 text-gray-400" aria-hidden="true" />
                 </div>
-                <input
-                  v-model="searchQuery"
-                  type="text"
-                  name="search"
-                  id="search"
-                  class="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-2"
-                  placeholder="Search profiles..."
-                />
+                 <input
+    v-model="searchQuery"
+    type="text"
+    name="search"
+    id="search"
+    placeholder="Search profiles..."
+    class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out sm:text-sm bg-white"
+  />
               </div>
             </div>
             
@@ -158,8 +158,9 @@ import { useRouter } from 'vue-router'
 import DefaultLayout from '../../layout/DefaultLayout.vue'
 import ProfileMetrics from '../../components/Details/ProfileMetrics.vue'
 import ProfileTable from '../../components/Details/ProfileTable.vue'
-import ProfileFormModal from '../../components/Details/ProfileFormModal.vue'
+import ProfileFormModal from '../../components/Form/ProfileFormModal.vue'
 import { PlusIcon } from '@heroicons/vue/24/outline'
+import HeroHeader from '../../components/HeroHeader.vue'
 
 const router = useRouter()
 const toast = useToast()
@@ -249,10 +250,16 @@ const fetchProfiles = async () => {
 
 const refreshData = () => fetchProfiles()
 
-// Profile management
-const openEditModal = (profile?: ProfileDetails) => {
-  isEditing.value = !!profile
-  selectedProfile.value = profile ? { ...profile } : null
+const openAddModal = () => {
+  isEditing.value = false
+  selectedProfile.value = null // or your default form values
+  editModalOpen.value = true
+}
+
+// Modify your existing openEditModal to handle just edits
+const openEditModal = (profile: ProfileDetails) => {
+  isEditing.value = true
+  selectedProfile.value = { ...profile }
   editModalOpen.value = true
 }
 
@@ -277,7 +284,7 @@ const handleFormSubmit = async (formData: ProfileDetails) => {
       toast.success('Profile updated successfully')
     } else {
       await axios.post(
-        `${apiUrl}/encodeprofileDetails/create`, 
+        `${apiUrl}/encode-profile-details`, 
         formData,
         { headers }
       )

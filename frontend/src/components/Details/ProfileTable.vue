@@ -28,7 +28,7 @@
               </div>
             </td>
 
-            <!-- Resolution: width and height -->
+          
             <td class="px-6 py-4 whitespace-nowrap text-gray-900 font-medium">{{ profile.width }}</td>
             <td class="px-6 py-4 whitespace-nowrap text-gray-900 font-medium">{{ profile.height }}</td>
 
@@ -37,12 +37,12 @@
             <td class="px-6 py-4 whitespace-nowrap text-gray-900">{{ profile.max_bitrate || 'Auto' }}</td>
             <td class="px-6 py-4 whitespace-nowrap text-gray-900">{{ profile.pix_fmt }}</td>
 
-            <!-- Audio -->
+
             <td class="px-6 py-4 whitespace-nowrap text-gray-900">{{ profile.audio_bitrate }}kbps</td>
             <td class="px-6 py-4 whitespace-nowrap text-gray-900">{{ profile.audio_channel }}ch</td>
             <td class="px-6 py-4 whitespace-nowrap text-gray-900">{{ profile.audio_frequency }}Hz</td>
 
-            <!-- Format -->
+    
             <td class="px-6 py-4 whitespace-nowrap">
               <span
                 class="px-2 py-1 text-xs rounded-full"
@@ -59,7 +59,7 @@
             <!-- Actions -->
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
               <button @click="$emit('edit', profile)" class="text-indigo-600 hover:text-indigo-900 mr-4">
-            Edit
+            <EditIcon/>
               </button>
          
             </td>
@@ -73,7 +73,8 @@
 </template>
 
 <script setup lang="ts">
-import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/vue/24/solid'
+
+import EditIcon from '../icons/EditIcon.vue'
 
 defineProps({
   profiles: {

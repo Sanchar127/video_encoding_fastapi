@@ -2,9 +2,12 @@
   <DefaultLayout>
     <div class="min-h-screen flex items-center justify-center p-20 ">
       <div class="bg-white shadow-2xl rounded-3xl p-10 w-full max-w-6xl">
-        <h2 class="text-3xl font-bold mb-10 text-center text-gray-800">
-          Create Encode Profile Details
-        </h2>
+     <div class="flex justify-center">
+  <HeroHeader class="text-3xl font-bold mb-10 text-gray-800 text-center" title="Create Encode Profile Details" />
+</div>
+
+
+
 
         <form @submit.prevent="handleSubmit" class="grid grid-cols-1 md:grid-cols-2 gap-8">
      
@@ -38,7 +41,7 @@
             </select>
           </div>
 
-          <!-- Dynamic Fields -->
+       
           <div
             v-for="(label, key) in fields"
             :key="key"
@@ -77,6 +80,7 @@ import axios from 'axios'
 import { useToast } from 'vue-toastification'
 import Cookies from 'js-cookie'
 import DefaultLayout from '@/layout/DefaultLayout.vue'
+import HeroHeader from '../../components/HeroHeader.vue'
 
 const apiUrl = 'http://localhost:8084'
 

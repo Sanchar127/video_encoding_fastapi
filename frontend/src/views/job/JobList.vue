@@ -1,5 +1,8 @@
 <template>
   <DefaultLayout>
+    <div class="flex justify-center">
+  <HeroHeader class="text-3xl font-bold mb-10 text-gray-800 text-center" title="Manage Jobs" />
+</div>
     <div class="max-w-full mx-5 my-12 px-4">
       <JobsMetrics
         :metrics="metrics"
@@ -36,10 +39,11 @@ import DefaultLayout from '../../layout/DefaultLayout.vue'
 import Cookies from 'js-cookie'
 
 
-import ArrowPathIcons from '../../components/icons/ArrowPathIcons.vue'
+
 import Filters from '../../components/job/Filters.vue'
 import JobTable from '../../components/job/JobTable.vue'
 import JobsMetrics from '../../components/job/JobsMetrics.vue'
+import HeroHeader from '../../components/HeroHeader.vue'
 
 const apiUrl = 'http://localhost:8084'
 interface JobItem {
@@ -60,19 +64,19 @@ const Details = ref<any[]>([])
 const loading = ref(true)
 const toast = useToast()
 
-console.log('adasdasd')
-// Metrics data
+
+
 const metrics = ref({
   total_jobs: 0,
   completed_jobs: 0,
   failed_jobs: 0,
-  queued_jobs: 0,        // Add this
-  processing_jobs: 0,    // Add this
+  queued_jobs: 0,      
+  processing_jobs: 0,   
   avg_processing_time: '0s',
   status_distribution: {}
 })
 
-// Filters
+
 const filters = ref({
   status: '',
   date_range: 'all',
@@ -81,7 +85,7 @@ const filters = ref({
   search: ''
 })
 
-// Pagination
+
 const pagination = ref({
   current_page: 1,
   per_page: 10,
@@ -89,7 +93,7 @@ const pagination = ref({
   total_pages: 1
 })
 
-// Computed properties
+
 const completionRate = computed(() => {
   if (metrics.value.total_jobs === 0) return 0
   return ((metrics.value.completed_jobs / metrics.value.total_jobs) * 100).toFixed(1)
@@ -98,7 +102,7 @@ const failureRate = computed(() => {
   const totalFailedJobs = metrics.value.failed_jobs
   const totalProcessedJobs = metrics.value.completed_jobs + metrics.value.failed_jobs
   
-  // Only calculate rate if we have processed jobs
+
   if (totalProcessedJobs === 0) return 0
   return ((totalFailedJobs / totalProcessedJobs) * 100).toFixed(1)
 })
@@ -106,8 +110,7 @@ const failureRate = computed(() => {
 const queuedRate = computed(() => {
   const totalqueuedJob = metrics.value.queued_jobs
   const totalProcessedJobs = metrics.value.completed_jobs + metrics.value.queued_jobs
-  
-  // Only calculate rate if we have processed jobs
+
   if (totalProcessedJobs === 0) return 0
   return (( totalqueuedJob / totalProcessedJobs) * 100).toFixed(1)
 })
@@ -119,12 +122,12 @@ const processingRate = computed(() => {
 const filteredJobs = computed(() => {
   let result = [...Job.value]
   
-  // Apply status filter
+
   if (filters.value.status) {
     result = result.filter(job => job.status === filters.value.status)
   }
   
-  // Apply date range filter
+
   if (filters.value.date_range !== 'all') {
     const now = new Date()
     let startDate = new Date()
@@ -154,48 +157,21 @@ const filteredJobs = computed(() => {
     })
   }
   
-  // Update pagination totals
+
   pagination.value.total = result.length
   pagination.value.total_pages = Math.ceil(result.length / pagination.value.per_page)
   
-  // Apply pagination
+
   const start = (pagination.value.current_page - 1) * pagination.value.per_page
   const end = start + pagination.value.per_page
   pagination.value.start = start + 1
   pagination.value.end = Math.min(end, result.length)
-  
-  return result.slice(start, end)
+
+  return result
 })
 
-// Helper functions
-const formatDate = (dateString: string) => {
-  if (!dateString) return 'N/A'
-  return new Date(dateString).toLocaleString()
-}
 
-const calculateDuration = (start: string, end: string) => {
-  if (!start) return 'N/A'
-  const startTime = new Date(start)
-  const endTime = end ? new Date(end) : new Date()
-  console.log(`This is Start date ${startTime}`)
-  console.log(`This is End date endTime`)
-  const seconds = Math.floor((endTime.getTime() - startTime.getTime()) / 1000)
-  console.log(seconds)
-  if (seconds < 60) return `${seconds}s`
-  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ${seconds % 60}s`
-  return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`
-}
 
-const statusClass = (status: string) => {
-  switch (status.toLowerCase()) {
-    case 'completed': return 'bg-green-100 text-green-800'
-    case 'failed': return 'bg-red-100 text-red-800'
-    case 'processing': return 'bg-blue-100 text-blue-800'
-    default: return 'bg-gray-100 text-gray-800'
-  }
-}
-
-// Data fetching
 const fetchJob = async () => {
   loading.value = true
   try {
@@ -217,7 +193,7 @@ const fetchProfileDetails = async () => {
         Authorization: `Bearer ${Cookies.get('access_token')}`,
       }
     })
-    Details.value = res.data  // Make sure this is an array of objects with `id` and `name`
+    Details.value = res.data 
     console.log(res.data)
   } catch (err) {
     toast.error('Failed to fetch profile details')
@@ -234,7 +210,7 @@ const retryJob = async (jobId: number) => {
 
     const response = await axios.put(
       `${apiUrl}/retry-job/${jobId}`,
-      {},  // Empty body
+      {},  
       {
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -267,8 +243,7 @@ const calculateMetrics = () => {
   const failed = Job.value.filter(job => job.status === 'failed').length
   const queued = Job.value.filter(job => job.status === 'queued').length
   const processing = Job.value.filter(job => job.status === 'processing').length
-  
-  // Calculate processing times
+
   let totalCompletedTime = 0
   let completedCount = 0
   let totalActiveTime = 0
@@ -280,27 +255,26 @@ const calculateMetrics = () => {
       const now = new Date()
       
       if (job.status === 'completed' && job.ended_at) {
-        // For completed jobs with end date
+       
         const end = new Date(job.ended_at)
         totalCompletedTime += end.getTime() - start.getTime()
         completedCount++
       } else if (['processing', 'queued'].includes(job.status)) {
-        // For ongoing jobs, use current time as end time
+   
         totalActiveTime += now.getTime() - start.getTime()
         activeCount++
       }
     }
   })
   
-  // Calculate averages
+
   const avgCompletedTime = completedCount > 0 ? totalCompletedTime / completedCount : 0
   const avgActiveTime = activeCount > 0 ? totalActiveTime / activeCount : 0
   
-  // Combine averages (weighted or simple)
+
   const avgTime = completedCount > 0 ? avgCompletedTime : avgActiveTime
   const avgSeconds = Math.floor(avgTime / 1000)
-  
-  // Format average time
+
   let avgTimeFormatted = 'N/A'
   if (avgSeconds > 0) {
     if (avgSeconds < 60) {
@@ -310,8 +284,7 @@ const calculateMetrics = () => {
     } else {
       avgTimeFormatted = `${Math.floor(avgSeconds / 3600)}h ${Math.floor((avgSeconds % 3600) / 60)}m`
     }
-    
-    // Add indicator if using active jobs in calculation
+
     if (completedCount === 0 && activeCount > 0) {
       avgTimeFormatted += ' (estimated)'
     }
@@ -347,5 +320,4 @@ onMounted(() => {
   fetchProfileDetails()
 })
 </script>
-
 

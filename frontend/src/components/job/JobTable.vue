@@ -12,8 +12,8 @@
         Refresh
       </button>
     </div>
+  
     
-    <!-- Loading State -->
     <div v-if="loading" class="p-6">
       <div class="animate-pulse space-y-6">
         <div v-for="i in 5" :key="i" class="flex items-center gap-4">
@@ -26,7 +26,7 @@
       </div>
     </div>
 
-    <!-- Table -->
+   
     <div v-else-if="filteredJobs.length > 0" class="overflow-x-auto">
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
@@ -48,7 +48,7 @@
       </table>
     </div>
     
-    <!-- Empty State -->
+  
     <JobsEmptyState 
       v-else
       @reset="$emit('reset')"

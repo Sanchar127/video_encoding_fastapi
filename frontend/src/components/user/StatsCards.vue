@@ -5,7 +5,7 @@
       <div class="px-3 py-3 xs:px-4 xs:py-4 sm:p-5">
         <div class="flex items-center">
           <div class="flex-shrink-0 bg-indigo-500 rounded-md p-1.5 xs:p-2 sm:p-3">
-            <UsersIcon class="h-4 w-4 xs:h-5 xs:w-5 sm:h-6 sm:w-6 text-white" />
+            <UserIcon class="h-4 w-4 xs:h-5 xs:w-5 sm:h-6 sm:w-6 text-white" />
           </div>
           <div class="ml-3 xs:ml-4 w-0 flex-1">
             <dl>
@@ -24,7 +24,7 @@
       <div class="px-3 py-3 xs:px-4 xs:py-4 sm:p-5">
         <div class="flex items-center">
           <div class="flex-shrink-0 bg-green-500 rounded-md p-1.5 xs:p-2 sm:p-3">
-            <CheckCircleIcon class="h-4 w-4 xs:h-5 xs:w-5 sm:h-6 sm:w-6 text-white" />
+            <CheckCircleIcons class="h-4 w-4 xs:h-5 xs:w-5 sm:h-6 sm:w-6 text-white" />
           </div>
           <div class="ml-3 xs:ml-4 w-0 flex-1">
             <dl>
@@ -43,7 +43,7 @@
       <div class="px-3 py-3 xs:px-4 xs:py-4 sm:p-5">
         <div class="flex items-center">
           <div class="flex-shrink-0 bg-yellow-500 rounded-md p-1.5 xs:p-2 sm:p-3">
-            <ExclamationTriangleIcon class="h-4 w-4 xs:h-5 xs:w-5 sm:h-6 sm:w-6 text-white" />
+            <UserIcon class="h-4 w-4 xs:h-5 xs:w-5 sm:h-6 sm:w-6 text-white" />
           </div>
           <div class="ml-3 xs:ml-4 w-0 flex-1">
             <dl>
@@ -60,7 +60,9 @@
 </template>
 
 <script setup lang="ts">
-import { UsersIcon, CheckCircleIcon, ExclamationTriangleIcon } from '@heroicons/vue/24/outline'
+
+import UserIcon from '../icons/UserIcon.vue'
+import CheckCircleIcons from '../icons/CheckCircleIcons.vue'
 
 defineProps<{
   totalUsers: number

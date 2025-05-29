@@ -9,7 +9,7 @@
           v-model="filters.status" 
           class="w-full px-3 py-2 border rounded-md"
         >
-          <option value="">All Statuses</option>
+          <option value="">All Status</option>
           <option value="queued">queued</option>
           <option value="processing">processing</option>
           <option value="completed">completed</option>
@@ -17,7 +17,7 @@
         </select>
       </div>
       
-      <!-- Date Range Filter -->
+
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Date Range</label>
         <select 

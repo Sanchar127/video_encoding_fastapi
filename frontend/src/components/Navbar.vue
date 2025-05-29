@@ -1,13 +1,12 @@
 <template>
   <nav class="bg-white text-slate-800 shadow-sm sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-      
-      <!-- Logo -->
+     
       <div class="flex items-center space-x-2">
         <span class="text-2xl font-bold">FastEncoder</span>
       </div>
 
-      <!-- Hamburger (Mobile) -->
+      
       <button
         @click="isOpen = !isOpen"
         class="lg:hidden text-slate-800 focus:outline-none"

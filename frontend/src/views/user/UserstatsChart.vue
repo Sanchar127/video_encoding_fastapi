@@ -1,5 +1,5 @@
 <template>
-  <div>Hey this bar
+  <div>
     <Bar :chart-data="chartData" :chart-options="chartOptions" />
   </div>
 </template>
@@ -33,7 +33,7 @@ const chartData = computed(() => ({
     {
       label: 'Count',
       data: [props.total, props.active, props.blacklisted, props.tokens],
-      // backgroundColor and borderColor can be omitted so Chart.js picks defaults
+    
       borderWidth: 1,
     },
   ],
@@ -46,8 +46,8 @@ const chartOptions = {
   },
 }
 
-// If you need to reactively update when props change:
+
 watch(props, () => {
-  // chartData is a computed so it will update automatically
+  
 })
 </script>

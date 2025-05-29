@@ -2,9 +2,19 @@
   <DefaultLayout>
     <div class="min-h-screen py-2 px-2 xs:px-4 sm:px-6 lg:px-8">
       <div class="max-w-7xl mx-auto">
-        <HeaderSection @update:search="updateSearchQuery" />
-        <StatsCards :total-users="totalUsers" :active-users="activeUsers" :blacklisted-users="totalBlacklistedUser" />
-        <UsersTable :users="filteredUsers" @edit-user="openEditModal" />
+        <HeaderSection 
+          v-model:search="searchQuery" 
+          @add-user="handleAddUser"
+        />
+        <StatsCards 
+          :total-users="totalUsers" 
+          :active-users="activeUsers" 
+          :blacklisted-users="totalBlacklistedUser" 
+        />
+        <UsersTable 
+          :users="filteredUsers" 
+          @edit-user="openEditModal" 
+        />
         <Pagination />
         <EditUserModal 
           :show="showEditModal" 
@@ -51,19 +61,27 @@ const editingUser = ref<any>({
   callback_secret_key: ''
 })
 
+// Computed properties
 const totalUsers = computed(() => users.value.length)
 const activeUsers = computed(() => users.value.filter(user => user.is_activated).length)
 const totalBlacklistedUser = computed(() => blacklistedUsers.value.length)
 
 const filteredUsers = computed(() => {
-  if (!searchQuery.value) return users.value
-  const query = searchQuery.value.toLowerCase()
-  return users.value.filter(user =>
-    user.name.toLowerCase().includes(query) || 
-    user.email.toLowerCase().includes(query)
-  )
+  if (!searchQuery.value.trim()) return users.value
+  
+  const query = searchQuery.value.toLowerCase().trim()
+  return users.value.filter(user => {
+    return (
+      user.name?.toLowerCase().includes(query) ||
+      user.email?.toLowerCase().includes(query) ||
+      user.role?.toLowerCase().includes(query) ||
+      user.mobile?.includes(query) ||
+      user.callback_url?.toLowerCase().includes(query)
+    )
+  })
 })
 
+// Data fetching
 const fetchUsers = async () => {
   const accessToken = Cookies.get('access_token')
   if (!accessToken) {
@@ -124,6 +142,7 @@ const fetchAllTokens = async () => {
   }
 }
 
+// User actions
 const openEditModal = (user: any) => {
   editingUser.value = JSON.parse(JSON.stringify(user))
   showEditModal.value = true
@@ -159,6 +178,8 @@ const saveUser = async () => {
   }
 }
 
+
+// Lifecycle hooks
 onMounted(() => {
   fetchUsers()
   fetchBlacklistedUsers()

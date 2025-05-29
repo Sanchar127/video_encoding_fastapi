@@ -87,7 +87,7 @@ const activeSection = ref('');
 
 const dashboardRoute = computed(() => {
   const token = Cookies.get('access_token');
-  if (!token) return '/'; // fallback to login
+  if (!token) return '/'; 
 
   try {
     const decoded: DecodedToken = jwtDecode.default(token);
@@ -130,14 +130,14 @@ function setActive(section: string) {
         } else if (role === 'admin') {
           router.push('/admin/dashboard');
         } else {
-          router.push('/jobList'); // fallback for other roles
+          router.push('/jobList');
         }
       } catch (error) {
         console.error('Failed to decode token:', error);
-        router.push('/'); // redirect to login if token is invalid
+        router.push('/'); 
       }
     } else {
-      router.push('/'); // redirect to login if no token
+      router.push('/'); 
     }
   }
 }

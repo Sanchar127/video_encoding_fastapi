@@ -1,0 +1,11 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "role_based_access_control"
+version = "0.1.0"
+description = "A role-based permission module for FastAPI"
+authors = [{ name="Sanchar Panthi", email="sancharpanthi8@gmail.com" }]
+dependencies = ["fastapi"]
+requires-python = ">=3.7"
